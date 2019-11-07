@@ -27,6 +27,7 @@
         <mail.version>1.4.7</mail.version>
         <freemarker.version>2.3.29</freemarker.version>
         <log4j.version>2.10.0</log4j.version>
+        <jackson.version>2.10.0</jackson.version>
     </properties>
 
     <dependencies>
@@ -158,17 +159,17 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>2.6.6</version>
+            <version>${jackson.version}</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-annotations</artifactId>
-            <version>2.6.6</version>
+            <version>${jackson.version}</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.module</groupId>
             <artifactId>jackson-module-jaxb-annotations</artifactId>
-            <version>2.6.6</version>
+            <version>${jackson.version}</version>
         </dependency>
         <!-- Swagger API End -->
     </dependencies>
