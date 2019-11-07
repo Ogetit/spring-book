@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="OFF" monitorInterval="1800">
+    <properties>
+        <property name="DEFAULT_PATTERN">
+            [%date]-[%X{sessionId}]-[%X{currUsername}]-[%thread]-[%-5level]-[%logger{80}]-[%msg]%n
+        </property>
+        <property name="TASK_PARTTERN">
+            [%date]-[%X{jobName}]-[%X{jobStatus}]-[%thread]-[%-5level]-[%logger{80}]-[%msg]%n
+        </property>
+    </properties>
+
+
+    <Appenders>
+        <!--控制台输出模式-->
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="${DEFAULT_PATTERN}"/>
+        </Console>
+        <!--文件输出模式-->
+        <RollingFile name="File" fileName="${log.file.path}/app.log"
+                     filePattern="${log.file.path}/$${date:yyyy-MM}/app-%d{yyyy-MM-dd}-%i.log.gz"
+                     immediateFlush="true">
+            <PatternLayout pattern="${DEFAULT_PATTERN}"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="10 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="20"/>
+        </RollingFile>
+        <!--定时任务文件输出模式-->
+        <RollingFile name="Task-File" fileName="${log.file.path}/app-task.log"
+                     filePattern="${log.file.path}/$${date:yyyy-MM}/app-task-%d{yyyy-MM-dd}-%i.log.gz"
+                     immediateFlush="true">
+            <PatternLayout pattern="${DEFAULT_PATTERN}"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="10 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="20"/>
+        </RollingFile>
+    </Appenders>
+
+    <Loggers>
+        <Logger name="com.github.app.util.task" level="trace" additivity="true">
+            <AppenderRef ref="Task-File" />
+        </Logger>
+        <Logger name="com.github.app.web.system.task" level="trace" additivity="true">
+            <AppenderRef ref="Task-File" />
+        </Logger>
+        <Root level="${log.level}">
+            <!-- 这里是输入到文件，很重要-->
+            <AppenderRef ref="File"/>
+            <!-- 这里是输入到控制台-->
+            <AppenderRef ref="Console"/>
+        </Root>
+    </Loggers>
+</Configuration>
