@@ -3,16 +3,24 @@ package com.github.app.util.code.model;
 public class CodeColumn {
 
     private String columnName;
-    private String columnType; // 数据表的类型
+    // 数据表的类型
+    private String columnType;
     private String remark;
-    private String propertyName; // 属性名，首字小写
-    private String propertyType; // 属性的java type
-    private String propertyCamelName; // 首字大写的属性名
+    // 属性名，首字小写
+    private String propertyName;
+    // 属性的java type
+    private String propertyType;
+    // 首字大写的属性名
+    private String propertyCamelName;
     private boolean isPrimaryKey;
-    private boolean isNullable;// 是否允许为空
-    private Long length; // 字段长度
-    private Object defaultValue; // 字段默认值
-    private boolean identity = false;// 是否自增长字段
+    // 是否允许为空
+    private boolean isNullable;
+    // 字段长度
+    private Long length;
+    // 字段默认值
+    private Object defaultValue;
+    // 是否自增长字段
+    private boolean identity = false;
 
     public String getColumnName() {
         return columnName;

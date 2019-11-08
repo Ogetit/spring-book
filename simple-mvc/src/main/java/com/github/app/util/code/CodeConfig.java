@@ -15,13 +15,20 @@ import com.github.app.util.code.service.DataBase2FileService;
  * 读取配置文件
  */
 public class CodeConfig {
-    private String baseDir; // 文件存放默认路径
-    private String basePackage; // 包路径的前缀，如com.mars，后面则跟上模块名等
-    private CodeDb db; // 连接数据库的配置信息
-    private List<CodeModule> modules; // 要生成的代码模块列表
-    private CodePackageSetting packageSetting; // 全局包名设置
-    private String theme; // 全局界面模板风格
-    private String pageType; // 页面类型
+    // 文件存放默认路径
+    private String baseDir;
+    // 包路径的前缀，如com.mars，后面则跟上模块名等
+    private String basePackage;
+    // 连接数据库的配置信息
+    private CodeDb db;
+    // 要生成的代码模块列表
+    private List<CodeModule> modules;
+    // 全局包名设置
+    private CodePackageSetting packageSetting;
+    // 全局界面模板风格
+    private String theme;
+    // 页面类型
+    private String pageType;
     private List<String> ignoreColumns = new ArrayList<String>();
 
     public String getBaseDir() {
@@ -105,9 +112,12 @@ public class CodeConfig {
 
         // 生成类的包路径配置
         CodePackageSetting packageSetting = new CodePackageSetting();
-        packageSetting.setEntityPackage("entity.system"); // 实体类相对 BasePackage 的包路径
-        packageSetting.setDaoPackage("dao.system"); // 实体类相对 BasePackage 的包路径
-        packageSetting.setServicePackage("service.system"); // 实体类相对 BasePackage 的包路径
+        // 实体类相对 BasePackage 的包路径
+        packageSetting.setEntityPackage("entity.system");
+        // 实体类相对 BasePackage 的包路径
+        packageSetting.setDaoPackage("dao.system");
+        // 实体类相对 BasePackage 的包路径
+        packageSetting.setServicePackage("service.system");
         cfg.setPackageSetting(packageSetting);
 
         List<CodeModule> modules = new ArrayList<CodeModule>();

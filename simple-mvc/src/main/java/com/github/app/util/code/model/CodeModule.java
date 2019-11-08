@@ -11,9 +11,12 @@ public class CodeModule {
      * 启用的持久层框架，选项有：hibernate,mybatis,jdbc，其中hibernate为默认
      */
     private String persistance;
-    private boolean isDeleteTablePrefix; // 是否删除表前缀
-    private String savePath; // 默认保存目录，文件保存到该目录下，暂时不使用此属性值
-    private String framework;// 使用前端框架，可设置为dorado和mvc，mvc表示使用spring-mvc
+    // 是否删除表前缀
+    private boolean isDeleteTablePrefix;
+    // 默认保存目录，文件保存到该目录下，暂时不使用此属性值
+    private String savePath;
+    private String framework;
+    // 使用前端框架，可设置为dorado和mvc，mvc表示使用spring-mvc
     private String daoPackage;
     private String daoImplPackage;
     private String servicePackage;
@@ -24,9 +27,10 @@ public class CodeModule {
     private String mapperPackage;
     private String myBatisPackage;
     private CodePackageSetting defaultPackageSetting;
-    private List<CodeTableConf> tables; // 配置的数据表信息
-
-    private String theme; // 模块使用的页面模板，可独立于全局配置的模板，如果不设置，则默认使用全局配置
+    // 配置的数据表信息
+    private List<CodeTableConf> tables;
+    // 模块使用的页面模板，可独立于全局配置的模板，如果不设置，则默认使用全局配置
+    private String theme;
 
     public String getName() {
         return name;

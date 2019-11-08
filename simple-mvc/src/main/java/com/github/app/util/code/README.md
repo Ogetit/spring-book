@@ -12,17 +12,20 @@ public static CodeConfig loadConfig(){
     CodeDb db = new CodeDb();
     db.setDbName("XXX");
     db.setDbType("oracle");
-    db.setUser("root");
+    db.setUser("admin");
     db.setPwd("xxxx");
     db.setDriver("oracle.jdbc.driver.OracleDriver");
-    db.setUrl("jdbc:oracle:thin:@localhost/xxx");
+    db.setUrl("jdbc:oracle:thin:@localhost:1521/xxx");
     cfg.setDb(db);
 
     // 生成类的包路径配置
     CodePackageSetting packageSetting = new CodePackageSetting();
-    packageSetting.setEntityPackage("entity.system"); // 实体类相对 BasePackage 的包路径
-    packageSetting.setDaoPackage("dao.system"); // 实体类相对 BasePackage 的包路径
-    packageSetting.setServicePackage("service.system"); // 实体类相对 BasePackage 的包路径
+    // 实体类相对 BasePackage 的包路径
+    packageSetting.setEntityPackage("entity.system");
+    // 实体类相对 BasePackage 的包路径
+    packageSetting.setDaoPackage("dao.system");
+    // 实体类相对 BasePackage 的包路径
+    packageSetting.setServicePackage("service.system"); 
     cfg.setPackageSetting(packageSetting);
 
     List<CodeModule> modules = new ArrayList<CodeModule>();

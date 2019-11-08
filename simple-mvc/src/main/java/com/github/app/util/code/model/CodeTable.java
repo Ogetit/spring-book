@@ -6,26 +6,36 @@ import java.util.List;
 public class CodeTable {
     private CodeModule module;
     private String packageName;
-    private String tableFullName;// 完整表名
-    private String tableName;  //  表名，去掉prefix
-    private String entityName; // 实体名
-    private String entityCamelName; // 完整实体类名
-    private String remark; // 表注释
-    private String primaryKey;// 主键
-    private List<String> primaryKeys; // 联合主键
-    private String primaryProperty;// 主键属性名
-    private String primaryPropertyType; // 主键属性类型
+    // 完整表名
+    private String tableFullName;
+    // 表名，去掉prefix
+    private String tableName;
+    // 实体名
+    private String entityName;
+    // 完整实体类名
+    private String entityCamelName;
+    // 表注释
+    private String remark;
+    // 主键
+    private String primaryKey;
+    // 联合主键
+    private List<String> primaryKeys;
+    // 主键属性名
+    private String primaryProperty;
+    // 主键属性类型
+    private String primaryPropertyType;
     private String primaryCamelProperty;
-    private String primaryKeyType;// 主键类型
-
+    // 主键类型
+    private String primaryKeyType;
     private List<CodeColumn> primaryKeyList;
-
-    private String parentProperty; // 若为子表，则此属性为上级表的属性
+    // 若为子表，则此属性为上级表的属性
+    private String parentProperty;
 
     private List<String> importClassList = new ArrayList<String>();
     private List<CodeColumn> columns = new ArrayList<CodeColumn>();
     private List<CodeTable> subTables = new ArrayList<CodeTable>();
-    private String refType; // 表间关联类型
+    // 表间关联类型
+    private String refType;
 
     public String getPackageName() {
         return packageName;

@@ -98,15 +98,21 @@ public class DataBase2FileService {
      * @return
      */
     private StringBuffer genFile(CodeTable tb, CodeModule module) {
-        generateEntityFile(tb, module);//生成entity
-        generateServiceFile(tb, module);//生成service
-        generateActionFile(tb, module);//生成action
-        generateDaoFile(tb, module);//生成dao
+        // 生成entity
+        generateEntityFile(tb, module);
+        // 生成service
+        generateServiceFile(tb, module);
+        // 生成action
+        generateActionFile(tb, module);
+        // 生成dao
+        generateDaoFile(tb, module);
         if ("dorado".equals(module.getFramework())) {
-            generateViewFile(tb, module);//生成view
-        } else if ("mvc".equals(module.getFramework()) || "rest".equals(module.getFramework()) || "ajax"
-                .equals(module.getFramework())) {
-            generateJspFile(tb, module);//生成jsp
+            // 生成view
+            generateViewFile(tb, module);
+        } else if ("mvc".equals(module.getFramework()) || "rest".equals(module.getFramework())
+                || "ajax".equals(module.getFramework())) {
+            // 生成jsp
+            generateJspFile(tb, module);
         }
         StringBuffer sb = new StringBuffer();
         //若是使用dorado框架，则生成model的数据块
@@ -267,11 +273,12 @@ public class DataBase2FileService {
          * 如果是mybatis，则生成mytabis的xml配置文件
          */
         else if (module.getPersistance().equals("mybatis")) {
-            if (!CodeUtil.isEmpty(module.getSavePath())) { //配置了模块文件保存，则把文件全部生成到此目录下
+            if (!CodeUtil.isEmpty(module.getSavePath())) {
+                // 配置了模块文件保存，则把文件全部生成到此目录下
                 saveDir = new File(module.getSavePath());
             } else {
                 saveDir = new File(config.getBaseDir(), "resources");
-                //saveDir = saveDir.getParentFile();
+                // saveDir = saveDir.getParentFile();
                 saveDir = new File(saveDir, "mapper" + File.separator + module.getName());
             }
             if (!saveDir.exists()) {
@@ -312,7 +319,7 @@ public class DataBase2FileService {
         String savePath = saveFile.getAbsolutePath();
         System.out.println("生成文件：" + savePath);
         CodeFreemarkerUtil.createDoc(obj, "ServiceInterface", savePath);
-        //实现文件
+        // 实现文件
         File implDir =
                 getSaveFilePath(module, module.getServicePackage() + File.separator + module.getServiceImplPackage());
         File implFile = new File(implDir, table.getEntityCamelName() + "ServiceImpl.java");
@@ -368,7 +375,7 @@ public class DataBase2FileService {
      * @param table
      */
     private void generateJspFile(CodeTable table, CodeModule module) {
-        //这里应该把过滤的字段取出来，并在table中把相关的column删除后，再生成
+        // 这里应该把过滤的字段取出来，并在table中把相关的column删除后，再生成
         List<CodeColumn> columns = new ArrayList<CodeColumn>();
         for (CodeColumn col : table.getColumns()) {
             columns.add(col);
@@ -386,18 +393,18 @@ public class DataBase2FileService {
         String[] actions = {"add", "edit", "list", "show"};
         JSONObject obj = (JSONObject) JSON.toJSON(table);
         setBaseInfo(obj, module);
-        File saveDir = new File(config.getBaseDir(),
-                "webapp/" + module.getName());// getSaveFilePath(module,module.getViewPackage());
+        File saveDir = new File(config.getBaseDir(), "webapp/" + module.getName());
+        // getSaveFilePath(module,module.getViewPackage());
         for (String action : actions) {
-            //生成文件类型
+            // 生成文件类型
             String pageType = config.getPageType();
             File saveFile = new File(saveDir, table.getEntityName());
             saveFile.mkdirs();
             saveFile = new File(saveFile, action + table.getEntityCamelName() + "." + pageType);
-            //saveFile = new File(saveFile,table.getEntityName());
+            // saveFile = new File(saveFile,table.getEntityName());
             String savePath = saveFile.getAbsolutePath();
             System.out.println("生成文件：" + savePath);
-            //if (module.getFramework().equals("rest")) {
+            // if (module.getFramework().equals("rest")) {
             String templateDir = pageType + "/" + module.getFramework() + "/";
             if (module.getTheme() == null || module.getTheme().length() == 0) {
                 if (config.getTheme() != null && config.getTheme().length() > 0) {
@@ -407,9 +414,9 @@ public class DataBase2FileService {
                 templateDir = templateDir + module.getTheme() + "/";
             }
             CodeFreemarkerUtil.createDoc(obj, templateDir + action, savePath);
-            //} else {
-            //	CodeFreemarkerUtil.createDoc(obj, pageType+"/"+action, savePath);
-            //}
+            // } else {
+            //	 CodeFreemarkerUtil.createDoc(obj, pageType+"/"+action, savePath);
+            // }
         }
         //还原为完整的列
         table.setColumns(columns);
@@ -427,7 +434,7 @@ public class DataBase2FileService {
         JSONObject obj = (JSONObject) JSON.toJSON(table);
         setBaseInfo(obj, module);
         String str = CodeFreemarkerUtil.createString(obj, "DoradoModel");
-        //System.out.println(str);
+        // System.out.println(str);
         return str;
     }
 
@@ -455,11 +462,11 @@ public class DataBase2FileService {
             } else {
                 content = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Model>" + content + "</Model>";
             }
-            //System.out.println(content);
+            // System.out.println(content);
             fos = new FileOutputStream(modelFile);
             OutputStreamWriter oWriter = new OutputStreamWriter(fos, "UTF-8");
-            //这个地方对流的编码不可或缺，使用main（）单独调用时，应该可以，但是如果是web请求导出时导出后word文档就会打不开，并且包XML文件错误。主要是编码格式不正确，无法解析。  
-            //out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outFile)));  
+            // 这个地方对流的编码不可或缺，使用main（）单独调用时，应该可以，但是如果是web请求导出时导出后word文档就会打不开，并且包XML文件错误。主要是编码格式不正确，无法解析。
+            // out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outFile)));
             out = new BufferedWriter(oWriter);
         } catch (FileNotFoundException e1) {
             e1.printStackTrace();
@@ -482,10 +489,11 @@ public class DataBase2FileService {
     private static String readFile(File file) {
         StringBuffer result = new StringBuffer();
         try {
-            BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file), "utf-8"));//
+            BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file), "utf-8"));
             // 构造一个BufferedReader类来读取文件
             String s = null;
-            while ((s = br.readLine()) != null) {// 使用readLine方法，一次读一行
+            while ((s = br.readLine()) != null) {
+                // 使用readLine方法，一次读一行
                 result.append(s);
                 result.append("\n");
             }

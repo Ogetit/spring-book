@@ -185,10 +185,10 @@ public class OracleTableService {
                 }
             }
 
-            //String colKey = rs.getString("column_key");
-            //if (!isPrimaryKey(priCols,colKey)) {
-            //	col.setPrimaryKey(true);
-            //}
+            // String colKey = rs.getString("column_key");
+            // if (!isPrimaryKey(priCols,colKey)) {
+            // 	 col.setPrimaryKey(true);
+            // }
             if (col.getPropertyType().indexOf(".") != -1 && !CodeUtil
                     .existsType(table.getImportClassList(), col.getPropertyType())) {
                 table.getImportClassList().add(col.getPropertyType());
@@ -226,8 +226,8 @@ public class OracleTableService {
     }
 
     public List<String> getTablePrimaryKeys(String tableName, Connection con) throws SQLException {
-        //DatabaseMetaData dbMeta = con.getMetaData();
-        //ResultSet rs = dbMeta.getPrimaryKeys(null,null,tableName);
+        // DatabaseMetaData dbMeta = con.getMetaData();
+        // ResultSet rs = dbMeta.getPrimaryKeys(null,null,tableName);
         List<String> keys = new ArrayList<String>();
         String sql =
                 "select a.constraint_name,a.column_name from user_cons_columns a, user_constraints b  where a"
