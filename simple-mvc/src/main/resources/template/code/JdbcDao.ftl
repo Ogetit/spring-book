@@ -1,8 +1,9 @@
 package ${basePackage}.${moduleName}.${daoPackage};
 
-import javax.annotation.Resource;
 import org.springframework.stereotype.Repository;
+import org.springframework.beans.factory.annotation.Autowired;
 
+import com.github.app.util.jdbc.JdbcHelper
 import ${basePackage}.${moduleName}.${entityPackage}.${entityCamelName};
 <#if importClassList??>
 	<#list importClassList as imp>
@@ -22,8 +23,8 @@ import java.util.Map;
 <#assign type=type?replace("java.math.","")>
 @Repository
 public class ${entityCamelName}Dao {
-    @Resource(name = "jdbcProxy")
-    private JdbcProxy proxy;
+    @Autowired
+    private JdbcHelper jdbcHelper;
 
     /**
      * 通用单表插入方法
@@ -40,7 +41,7 @@ public class ${entityCamelName}Dao {
                 </#list>
             </#if>
                 + ")";
-        proxy.update(sql, entity);
+        jdbcHelper.update(sql, entity);
     }
 
 
@@ -60,7 +61,7 @@ public class ${entityCamelName}Dao {
                 </#list>
             </#if>
                 + "WHERE ${primaryKey}=:${primaryProperty}";
-        proxy.update(sql, entity);
+        jdbcHelper.update(sql, entity);
     }
     /**
      * 通用单表删除方法
@@ -69,7 +70,7 @@ public class ${entityCamelName}Dao {
         String sql = "DELETE FROM ${tableFullName!} WHERE ${primaryKey}=:${primaryProperty}";
         Map<String, Object> map = new HashMap<String, Object>();
         map.put("${primaryProperty}", ${primaryProperty});
-        proxy.update(sql, map);
+        jdbcHelper.update(sql, map);
     }
 </#if>
 
