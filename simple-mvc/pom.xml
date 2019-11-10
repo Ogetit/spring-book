@@ -26,7 +26,7 @@
         <druid.version>1.1.21</druid.version>
         <mail.version>1.4.7</mail.version>
         <freemarker.version>2.3.29</freemarker.version>
-        <log4j.version>2.10.0</log4j.version>
+        <slf4j.version>1.7.25</slf4j.version>
         <jackson.version>2.10.0</jackson.version>
     </properties>
 
@@ -119,29 +119,51 @@
             <version>${freemarker.version}</version>
         </dependency>
 
-        <!--log4j-->
+        <!--slf4j+log4j-->
         <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-api</artifactId>
-            <version>${log4j.version}</version>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-core</artifactId>
-            <version>${log4j.version}</version>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>${slf4j.version}</version>
+            <scope>test</scope>
         </dependency>
 
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-web</artifactId>
-            <version>${log4j.version}</version>
-        </dependency>
 
         <!-- Swagger API -->
         <dependency>
             <groupId>io.springfox</groupId>
             <artifactId>springfox-swagger2</artifactId>
             <version>2.9.1</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>spring-beans</artifactId>
+                    <groupId>org.springframework</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>slf4j-api</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-aop</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-test</artifactId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>spring-context</artifactId>
+                    <groupId>org.springframework</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>jackson-annotations</artifactId>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                </exclusion>
+            </exclusions>
             <!--<scope>${swagger.scope}</scope>-->
         </dependency>
         <dependency>
@@ -150,12 +172,11 @@
             <version>1.9.1</version>
             <!--<scope>${swagger.scope}</scope>-->
         </dependency>
-        <dependency>
-            <groupId>io.springfox</groupId>
-            <artifactId>springfox-swagger-ui</artifactId>
-            <version>2.9.1</version>
-            <!--<scope>${swagger.scope}</scope>-->
-        </dependency>
+        <!--<dependency>-->
+            <!--<groupId>io.springfox</groupId>-->
+            <!--<artifactId>springfox-swagger-ui</artifactId>-->
+            <!--<version>2.9.1</version>-->
+        <!--</dependency>-->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
@@ -176,7 +197,7 @@
 
     <!--按当前配置打包-->
     <build>
-        <finalName>${project.name}-${project.version}-${maven.build.timestamp}</finalName>
+        <finalName>${project.name}-${maven.build.timestamp}</finalName>
         <filters>
             <filter>${basedir}/src/filters/${package.environment}.properties</filter>
         </filters>
@@ -240,6 +261,7 @@
             </plugin>
         </plugins>
     </build>
+
     <!--多环境多配置开发-->
     <profiles>
         <profile>

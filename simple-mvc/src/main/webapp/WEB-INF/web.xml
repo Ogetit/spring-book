@@ -110,6 +110,16 @@
         <servlet-name>dispatcher</servlet-name>
     </filter-mapping>
 
+    <!--durid 控制台  http://localhost:8888/druid/index.html -->
+    <servlet>
+        <servlet-name>DruidStatView</servlet-name>
+        <servlet-class>com.alibaba.druid.support.http.StatViewServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>DruidStatView</servlet-name>
+        <url-pattern>/druid/*</url-pattern>
+    </servlet-mapping>
+
     <!--错误页面-->
     <error-page>
         <error-code>404</error-code>
