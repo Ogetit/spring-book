@@ -7,6 +7,7 @@ import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -29,6 +30,7 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
  * @author ouyangjie
  * @Title: SwaggerApiConfig
  */
+@Configuration
 @EnableSwagger2
 @EnableWebMvc
 @EnableSwaggerBootstrapUI

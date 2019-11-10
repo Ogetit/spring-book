@@ -1,5 +1,7 @@
 package com.github.app.util.json.jackson;
 
+import java.io.IOException;
+
 import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -35,7 +37,7 @@ public class JacksonUtil {
             if (!StringUtils.isEmpty(json)) {
                 return MAPPER.readValue(json, clazz);
             }
-        } catch (JsonProcessingException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
@@ -46,7 +48,7 @@ public class JacksonUtil {
             if (!StringUtils.isEmpty(json)) {
                 return MAPPER.readValue(json, typeReference);
             }
-        } catch (JsonProcessingException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return null;

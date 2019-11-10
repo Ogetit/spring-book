@@ -26,8 +26,14 @@
         <druid.version>1.1.21</druid.version>
         <mail.version>1.4.7</mail.version>
         <freemarker.version>2.3.29</freemarker.version>
-        <slf4j.version>1.7.25</slf4j.version>
-        <jackson.version>2.10.0</jackson.version>
+        <slf4j.version>1.7.10</slf4j.version>
+        <log4j.version>1.2.17</log4j.version>
+        <aspectj.version>1.6.12</aspectj.version>
+        <cglib.version>2.2.2</cglib.version>
+        <commons-fileupload.version>1.4</commons-fileupload.version>
+        <!--<aspectj.version>1.9.2</aspectj.version>-->
+        <!--<cglib.version>3.2.12</cglib.version>-->
+        <jackson.version>2.9.8</jackson.version>
     </properties>
 
     <dependencies>
@@ -131,7 +137,37 @@
             <version>${slf4j.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>${log4j.version}</version>
+        </dependency>
 
+        <!-- AspectJ -->
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjrt</artifactId>
+            <version>${aspectj.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjtools</artifactId>
+            <version>${aspectj.version}</version>
+        </dependency>
+
+        <!-- CGLIB -->
+        <dependency>
+            <groupId>cglib</groupId>
+            <artifactId>cglib</artifactId>
+            <version>${cglib.version}</version>
+        </dependency>
+
+        <!--fileUpload -->
+        <dependency>
+            <groupId>commons-fileupload</groupId>
+            <artifactId>commons-fileupload</artifactId>
+            <version>${commons-fileupload.version}</version>
+        </dependency>
 
         <!-- Swagger API -->
         <dependency>
@@ -140,28 +176,8 @@
             <version>2.9.1</version>
             <exclusions>
                 <exclusion>
-                    <artifactId>spring-beans</artifactId>
-                    <groupId>org.springframework</groupId>
-                </exclusion>
-                <exclusion>
                     <artifactId>slf4j-api</artifactId>
                     <groupId>org.slf4j</groupId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-aop</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-test</artifactId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>spring-context</artifactId>
-                    <groupId>org.springframework</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>jackson-annotations</artifactId>
-                    <groupId>com.fasterxml.jackson.core</groupId>
                 </exclusion>
             </exclusions>
             <!--<scope>${swagger.scope}</scope>-->
@@ -172,11 +188,12 @@
             <version>1.9.1</version>
             <!--<scope>${swagger.scope}</scope>-->
         </dependency>
-        <!--<dependency>-->
-            <!--<groupId>io.springfox</groupId>-->
-            <!--<artifactId>springfox-swagger-ui</artifactId>-->
-            <!--<version>2.9.1</version>-->
-        <!--</dependency>-->
+        <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-swagger-ui</artifactId>
+            <version>2.9.1</version>
+            <!--<scope>${swagger.scope}</scope>-->
+        </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
