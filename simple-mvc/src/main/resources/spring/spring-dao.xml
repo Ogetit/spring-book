@@ -20,8 +20,7 @@
         <property name="logAbandoned" value="true"/>
         <property name="timeBetweenEvictionRunsMillis" value="10800000"/>
         <property name="validationQuery" value="select 1 from dual"/>
-        <property name="connectionProperties"
-                  value="druid.stat.slowSqlMillis=5000;config.decrypt=${jdbc.decrypt};config.decrypt.key=${jdbc.publickey}"/>
+        <property name="connectionProperties" value="druid.stat.slowSqlMillis=5000;config.decrypt=${jdbc.decrypt};config.decrypt.key=${jdbc.publickey}"/>
     </bean>
 
     <!-- Hibernate 配置 -->
