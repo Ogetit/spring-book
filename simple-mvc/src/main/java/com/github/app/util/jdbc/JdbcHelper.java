@@ -200,7 +200,7 @@ public class JdbcHelper {
         this.getNamedParameterJdbcTemplate().batchUpdate(sql, paramSource);
     }
 
-    public <V> void batchUpdate(String sql, Map<String, V>[] list) {
+    public void batchUpdate(String sql, Map<String, ?>[] list) {
         SqlParameterSource[] paramSource = this.createBatch(list);
         this.getNamedParameterJdbcTemplate().batchUpdate(sql, paramSource);
     }
