@@ -1,0 +1,48 @@
+[2019-11-10 16:20:05,105ate]-[]-[]-[RMI TCP Connection(2)-127.0.0.1hread]-[com.alibaba.druid.pool.DruidDataSource.close(DruidDataSource.java:2003)evel]-[com.alibaba.druid.pool.DruidDataSource.close(DruidDataSource.java:2003)ogger{80}]-[{dataSource-0} closing ...sg]
+[2019-11-10 16:20:05,105ate]-[]-[]-[RMI TCP Connection(2)-127.0.0.1hread]-[com.alibaba.druid.pool.DruidDataSource.close(DruidDataSource.java:2003)evel]-[com.alibaba.druid.pool.DruidDataSource.close(DruidDataSource.java:2003)ogger{80}]-[{dataSource-0} closing ...sg]
+[2019-11-10 16:21:53,124ate]-[]-[]-[RMI TCP Connection(2)-127.0.0.1hread]-[com.alibaba.druid.pool.DruidDataSource.close(DruidDataSource.java:2003)evel]-[com.alibaba.druid.pool.DruidDataSource.close(DruidDataSource.java:2003)ogger{80}]-[{dataSource-0} closing ...sg]
+[2019-11-10 16:21:53,124ate]-[]-[]-[RMI TCP Connection(2)-127.0.0.1hread]-[com.alibaba.druid.pool.DruidDataSource.close(DruidDataSource.java:2003)evel]-[com.alibaba.druid.pool.DruidDataSource.close(DruidDataSource.java:2003)ogger{80}]-[{dataSource-0} closing ...sg]
+[2019-11-10 16:24:09,679ate]-[]-[]-[RMI TCP Connection(2)-127.0.0.1hread]-[com.alibaba.druid.pool.DruidDataSource.close(DruidDataSource.java:2003)evel]-[com.alibaba.druid.pool.DruidDataSource.close(DruidDataSource.java:2003)ogger{80}]-[{dataSource-0} closing ...sg]
+[2019-11-10 16:24:09,679ate]-[]-[]-[RMI TCP Connection(2)-127.0.0.1hread]-[com.alibaba.druid.pool.DruidDataSource.close(DruidDataSource.java:2003)evel]-[com.alibaba.druid.pool.DruidDataSource.close(DruidDataSource.java:2003)ogger{80}]-[{dataSource-0} closing ...sg]
+[2019-11-10 16:28:18,298ate]-[]-[]-[RMI TCP Connection(4)-127.0.0.1hread]-[com.alibaba.druid.pool.DruidDataSource.close(DruidDataSource.java:2003)evel]-[com.alibaba.druid.pool.DruidDataSource.close(DruidDataSource.java:2003)ogger{80}]-[{dataSource-0} closing ...sg]
+[2019-11-10 16:28:18,298ate]-[]-[]-[RMI TCP Connection(4)-127.0.0.1hread]-[com.alibaba.druid.pool.DruidDataSource.close(DruidDataSource.java:2003)evel]-[com.alibaba.druid.pool.DruidDataSource.close(DruidDataSource.java:2003)ogger{80}]-[{dataSource-0} closing ...sg]
+[2019-11-10 17:57:21,720ate]-[]-[]-[RMI TCP Connection(4)-127.0.0.1hread]-[com.alibaba.druid.pool.DruidDataSource.close(DruidDataSource.java:2003)evel]-[com.alibaba.druid.pool.DruidDataSource.close(DruidDataSource.java:2003)ogger{80}]-[{dataSource-0} closing ...sg]
+[2019-11-10 17:57:21,720ate]-[]-[]-[RMI TCP Connection(4)-127.0.0.1hread]-[com.alibaba.druid.pool.DruidDataSource.close(DruidDataSource.java:2003)evel]-[com.alibaba.druid.pool.DruidDataSource.close(DruidDataSource.java:2003)ogger{80}]-[{dataSource-0} closing ...sg]
+[2019-11-10 18:06:49,801ate]-[]-[]-[RMI TCP Connection(4)-127.0.0.1hread]-[com.alibaba.druid.pool.DruidDataSource.close(DruidDataSource.java:2003)evel]-[com.alibaba.druid.pool.DruidDataSource.close(DruidDataSource.java:2003)ogger{80}]-[{dataSource-0} closing ...sg]
+[2019-11-10 18:06:49,801ate]-[]-[]-[RMI TCP Connection(4)-127.0.0.1hread]-[com.alibaba.druid.pool.DruidDataSource.close(DruidDataSource.java:2003)evel]-[com.alibaba.druid.pool.DruidDataSource.close(DruidDataSource.java:2003)ogger{80}]-[{dataSource-0} closing ...sg]
+[2019-11-10 18:08:49,821ate]-[]-[]-[RMI TCP Connection(4)-127.0.0.1hread]-[com.alibaba.druid.pool.DruidDataSource.close(DruidDataSource.java:2003)evel]-[com.alibaba.druid.pool.DruidDataSource.close(DruidDataSource.java:2003)ogger{80}]-[{dataSource-0} closing ...sg]
+[2019-11-10 18:08:49,821ate]-[]-[]-[RMI TCP Connection(4)-127.0.0.1hread]-[com.alibaba.druid.pool.DruidDataSource.close(DruidDataSource.java:2003)evel]-[com.alibaba.druid.pool.DruidDataSource.close(DruidDataSource.java:2003)ogger{80}]-[{dataSource-0} closing ...sg]
+[2019-11-10 18:15:35,045ate]-[]-[]-[RMI TCP Connection(2)-127.0.0.1hread]-[com.alibaba.druid.pool.DruidDataSource.close(DruidDataSource.java:2003)evel]-[com.alibaba.druid.pool.DruidDataSource.close(DruidDataSource.java:2003)ogger{80}]-[{dataSource-0} closing ...sg]
+[2019-11-10 18:15:35,045ate]-[]-[]-[RMI TCP Connection(2)-127.0.0.1hread]-[com.alibaba.druid.pool.DruidDataSource.close(DruidDataSource.java:2003)evel]-[com.alibaba.druid.pool.DruidDataSource.close(DruidDataSource.java:2003)ogger{80}]-[{dataSource-0} closing ...sg]
+[2019-11-10 18:16:06,169ate]-[]-[]-[RMI TCP Connection(2)-127.0.0.1hread]-[com.alibaba.druid.pool.DruidDataSource.close(DruidDataSource.java:2003)evel]-[com.alibaba.druid.pool.DruidDataSource.close(DruidDataSource.java:2003)ogger{80}]-[{dataSource-0} closing ...sg]
+[2019-11-10 18:16:06,169ate]-[]-[]-[RMI TCP Connection(2)-127.0.0.1hread]-[com.alibaba.druid.pool.DruidDataSource.close(DruidDataSource.java:2003)evel]-[com.alibaba.druid.pool.DruidDataSource.close(DruidDataSource.java:2003)ogger{80}]-[{dataSource-0} closing ...sg]
+[2019-11-10 18:18:39,853ate]-[]-[]-[RMI TCP Connection(2)-127.0.0.1hread]-[com.alibaba.druid.pool.DruidDataSource.close(DruidDataSource.java:2003)evel]-[com.alibaba.druid.pool.DruidDataSource.close(DruidDataSource.java:2003)ogger{80}]-[{dataSource-0} closing ...sg]
+[2019-11-10 18:18:39,853ate]-[]-[]-[RMI TCP Connection(2)-127.0.0.1hread]-[com.alibaba.druid.pool.DruidDataSource.close(DruidDataSource.java:2003)evel]-[com.alibaba.druid.pool.DruidDataSource.close(DruidDataSource.java:2003)ogger{80}]-[{dataSource-0} closing ...sg]
+[2019-11-13 23:45:37,271ate]-[]-[]-[mainhread]-[freemarker.log._Log4jLoggerFactory$Log4jLogger.error(_Log4jLoggerFactory.java:59)evel]-[freemarker.log._Log4jLoggerFactory$Log4jLogger.error(_Log4jLoggerFactory.java:59)ogger{80}]-[Error executing FreeMarker templatesg]
+FreeMarker template error:
+The following has evaluated to null or missing:
+==> primaryPropertyType  [in template "JdbcDao.ftl" at line 21, column 15]
+
+----
+Tip: If the failing expression is known to legally refer to something that's sometimes null or missing, either specify a default value like myOptionalVar!myDefault, or use <#if myOptionalVar??>when-present<#else>when-missing</#if>. (These only cover the last step of the expression; to cover the whole expression, use parenthesis: (myOptionalVar.foo)!myDefault, (myOptionalVar.foo)??
+----
+
+----
+FTL stack trace ("~" means nesting-related):
+	- Failed at: #assign type = primaryPropertyType  [in template "JdbcDao.ftl" at line 21, column 1]
+----
+
+Java stack trace (for programmers):
+----
+freemarker.core.InvalidReferenceException: [... Exception message was already printed; see it above ...]
+	at freemarker.core.InvalidReferenceException.getInstance(InvalidReferenceException.java:134)
+	at freemarker.core.Assignment.accept(Assignment.java:139)
+	at freemarker.core.Environment.visit(Environment.java:331)
+	at freemarker.core.Environment.visit(Environment.java:337)
+	at freemarker.core.Environment.process(Environment.java:310)
+	at freemarker.template.Template.process(Template.java:383)
+	at com.github.app.util.code.util.CodeFreemarkerUtil.saveFile(CodeFreemarkerUtil.java:74)
+	at com.github.app.util.code.util.CodeFreemarkerUtil.createDoc(CodeFreemarkerUtil.java:55)
+	at com.github.app.util.code.service.DataBase2FileService.generateDaoFileSimple(DataBase2FileService.java:243)
+	at com.github.app.util.code.service.DataBase2FileService.generateFiles(DataBase2FileService.java:80)
+	at com.github.app.util.code.CodeConfig.main(CodeConfig.java:160)

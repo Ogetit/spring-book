@@ -21,6 +21,9 @@
         <!--servlet-->
         <servlet.version>3.1.0</servlet.version>
         <servlet.jsp.version>2.0</servlet.jsp.version>
+        <!--jdbc驱动-->
+        <mysql.dirver.version>8.0.15</mysql.dirver.version>
+        <oracle.driver.version>12.1.0.2</oracle.driver.version>
         <!--utils-->
         <fastjson.version>1.2.58.sec06</fastjson.version>
         <druid.version>1.1.21</druid.version>
@@ -33,7 +36,7 @@
         <commons-fileupload.version>1.4</commons-fileupload.version>
         <!--<aspectj.version>1.9.2</aspectj.version>-->
         <!--<cglib.version>3.2.12</cglib.version>-->
-        <jackson.version>2.9.8</jackson.version>
+        <jackson.version>2.9.5</jackson.version>
     </properties>
 
     <dependencies>
@@ -102,6 +105,19 @@
             <version>${servlet.jsp.version}</version>
             <scope>provided</scope>
         </dependency>
+
+        <!--jdbc驱动-->
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>${mysql.dirver.version}</version>
+        </dependency>
+        <!--<dependency>-->
+            <!--<groupId>oracle</groupId>-->
+            <!--<artifactId>oracle-jdbc</artifactId>-->
+            <!--<version>${oracle.driver.version}</version>-->
+        <!--</dependency>-->
+
 
         <!--utils-->
         <dependency>
@@ -179,6 +195,18 @@
                     <artifactId>slf4j-api</artifactId>
                     <groupId>org.slf4j</groupId>
                 </exclusion>
+                <exclusion>
+                    <artifactId>spring-aop</artifactId>
+                    <groupId>org.springframework</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>spring-beans</artifactId>
+                    <groupId>org.springframework</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>spring-context</artifactId>
+                    <groupId>org.springframework</groupId>
+                </exclusion>
             </exclusions>
             <!--<scope>${swagger.scope}</scope>-->
         </dependency>
@@ -198,6 +226,12 @@
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
             <version>${jackson.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>jackson-annotations</artifactId>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -208,6 +242,12 @@
             <groupId>com.fasterxml.jackson.module</groupId>
             <artifactId>jackson-module-jaxb-annotations</artifactId>
             <version>${jackson.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>jackson-annotations</artifactId>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <!-- Swagger API End -->
     </dependencies>

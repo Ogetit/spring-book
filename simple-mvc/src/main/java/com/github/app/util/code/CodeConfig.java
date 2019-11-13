@@ -98,34 +98,34 @@ public class CodeConfig {
     public static CodeConfig loadConfig() {
         CodeConfig cfg = new CodeConfig();
         // 路径配置
-        cfg.setBaseDir("./src/main");
+        cfg.setBaseDir("/Users/ouyangjie/WorkSpace/Java/spring-book/simple-mvc/src/main");
         cfg.setBasePackage("com.github");
         // 数据库配置
         CodeDb db = new CodeDb();
-        db.setDbName("XXX");
-        db.setDbType("oracle");
-        db.setUser("admin");
-        db.setPwd("xxxx");
-        db.setDriver("oracle.jdbc.driver.OracleDriver");
-        db.setUrl("jdbc:oracle:thin:@localhost:1521/xxx");
+        db.setDbName("spring_book");
+        db.setDbType("mysql");
+        db.setUser("root");
+        db.setPwd("123456");
+        db.setDriver("com.mysql.jdbc.Driver");
+        db.setUrl("jdbc:mysql://localhost:8306/spring_book");
         cfg.setDb(db);
 
         // 生成类的包路径配置
         CodePackageSetting packageSetting = new CodePackageSetting();
         // 实体类相对 BasePackage 的包路径
-        packageSetting.setEntityPackage("entity.system");
+        packageSetting.setEntityPackage("entity.user");
         // 实体类相对 BasePackage 的包路径
-        packageSetting.setDaoPackage("dao.system");
+        packageSetting.setDaoPackage("dao.user");
         // 实体类相对 BasePackage 的包路径
-        packageSetting.setServicePackage("service.system");
+        packageSetting.setServicePackage("service.user");
         cfg.setPackageSetting(packageSetting);
 
         List<CodeModule> modules = new ArrayList<CodeModule>();
 
         CodeModule module = new CodeModule();
-        module.setPersistance("hibernate");
+        module.setPersistance("jdbc");
         // 模块名称
-        module.setName("xxx");
+        module.setName("app");
         module.setDeleteTablePrefix(true);
         module.setFramework("mvc");
         // 表信息配置，如果不配，默认生成  'like upper(module.name) + %' 的表，并且类名不去表名前缀
@@ -147,8 +147,8 @@ public class CodeConfig {
         List<CodeTableConf> result = new ArrayList<CodeTableConf>();
 
         CodeTableConf m = new CodeTableConf();
-        m.setName("T_TABLE123");
-        m.setPrefix("T_");
+        m.setName("APP_USER");
+        m.setPrefix("APP_");
         result.add(m);
 
         return result;

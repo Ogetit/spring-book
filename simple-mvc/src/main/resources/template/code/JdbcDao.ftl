@@ -1,13 +1,13 @@
 package ${basePackage}.${moduleName}.${daoPackage};
 
 import org.springframework.stereotype.Repository;
-import org.springframework.beans.factory.annotation.Autowired;
+<#--import org.springframework.beans.factory.annotation.Autowired;-->
 
-import com.github.app.util.jdbc.JdbcHelper
+import com.github.app.util.jdbc.JdbcBaseDao;
 import ${basePackage}.${moduleName}.${entityPackage}.${entityCamelName};
 <#if importClassList??>
 	<#list importClassList as imp>
-    import ${imp!};
+import ${imp!};
 	</#list>
 </#if>
 <#if primaryKey??>
@@ -18,14 +18,13 @@ import java.util.Map;
 /**
  * ${remark!} 对应 Dao 类
  */
+<#if primaryPropertyType??>
 <#assign type=primaryPropertyType>
 <#assign type=type?replace("java.util.","")>
 <#assign type=type?replace("java.math.","")>
+</#if>
 @Repository
-public class ${entityCamelName}Dao {
-    @Autowired
-    private JdbcHelper jdbcHelper;
-
+public class ${entityCamelName}Dao extends JdbcBaseDao<${entityCamelName}> {
     /**
      * 通用单表插入方法
      */
@@ -41,9 +40,8 @@ public class ${entityCamelName}Dao {
                 </#list>
             </#if>
                 + ")";
-        jdbcHelper.update(sql, entity);
+        this.update(sql, entity);
     }
-
 
 <#if primaryKey??>
     /**
@@ -61,7 +59,7 @@ public class ${entityCamelName}Dao {
                 </#list>
             </#if>
                 + "WHERE ${primaryKey}=:${primaryProperty}";
-        jdbcHelper.update(sql, entity);
+        this.update(sql, entity);
     }
     /**
      * 通用单表删除方法
@@ -70,7 +68,7 @@ public class ${entityCamelName}Dao {
         String sql = "DELETE FROM ${tableFullName!} WHERE ${primaryKey}=:${primaryProperty}";
         Map<String, Object> map = new HashMap<String, Object>();
         map.put("${primaryProperty}", ${primaryProperty});
-        jdbcHelper.update(sql, map);
+        this.update(sql, map);
     }
 </#if>
 

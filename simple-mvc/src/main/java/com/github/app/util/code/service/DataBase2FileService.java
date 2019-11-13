@@ -17,6 +17,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.util.StringUtils;
+
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.github.app.util.code.CodeConfig;
@@ -39,7 +41,7 @@ public class DataBase2FileService {
         config = CodeConfig.loadConfig();
     }
 
-    private OracleTableService tableService;
+    private ITableService tableService;
 
     /**
      * 主方法，反转生成相关文件
@@ -56,7 +58,7 @@ public class DataBase2FileService {
             throws IOException, ClassNotFoundException, SQLException {
         System.out.println("Generating...");
         Long start = System.currentTimeMillis();
-        tableService = new OracleTableService();
+        tableService = getTableServiceInstance(config.getDb().getDbType());
         tableService.setConfig(config);
         Class.forName(config.getDb().getDriver());
         Connection con =
@@ -175,7 +177,8 @@ public class DataBase2FileService {
         File saveFile = new File(saveDir, table.getEntityCamelName() + ".java");
 
         String savePath = saveFile.getAbsolutePath();
-        CodeFreemarkerUtil.createDoc(obj, "Entity", savePath);
+        String templatePrefix = CodeUtil.convertToCamelCase(module.getPersistance());
+        CodeFreemarkerUtil.createDoc(obj, templatePrefix + "Entity", savePath);
         System.out.println("生成文件：" + savePath);
 
         table.setColumns(columns);
@@ -219,7 +222,8 @@ public class DataBase2FileService {
         File saveFile = new File(saveDir, table.getEntityCamelName() + "RowMapper.java");
 
         String savePath = saveFile.getAbsolutePath();
-        CodeFreemarkerUtil.createDoc(obj, "RowMapper", savePath);
+        String templatePrefix = CodeUtil.convertToCamelCase(module.getPersistance());
+        CodeFreemarkerUtil.createDoc(obj, templatePrefix + "RowMapper", savePath);
         System.out.println("生成文件：" + savePath);
     }
 
@@ -234,8 +238,9 @@ public class DataBase2FileService {
         File saveDir = getSaveFilePath(module, module.getDaoPackage());
         File saveFile = new File(saveDir, table.getEntityCamelName() + "Dao.java");
         String savePath = saveFile.getAbsolutePath();
+        String templatePrefix = CodeUtil.convertToCamelCase(module.getPersistance());
         String templateName = "Dao";
-        CodeFreemarkerUtil.createDoc(obj, templateName, savePath);
+        CodeFreemarkerUtil.createDoc(obj, templatePrefix + templateName, savePath);
     }
 
     /**
@@ -253,7 +258,8 @@ public class DataBase2FileService {
         if ("jpa".equals(module.getPersistance())) {
             templateName = "DaoInterface_" + module.getPersistance();
         }
-        CodeFreemarkerUtil.createDoc(obj, templateName, savePath);
+        String templatePrefix = CodeUtil.convertToCamelCase(module.getPersistance());
+        CodeFreemarkerUtil.createDoc(obj, templatePrefix + templateName, savePath);
         System.out.println("生成文件：" + savePath);
         //实现文件
         if (!module.getPersistance().equals("mybatis") && !module.getPersistance().equals("jpa")) {
@@ -266,7 +272,7 @@ public class DataBase2FileService {
             }
             File implFile = new File(implDir, table.getEntityCamelName() + "DaoImpl.java");
             String implPath = implFile.getAbsolutePath();
-            CodeFreemarkerUtil.createDoc(obj, templateName, implPath);
+            CodeFreemarkerUtil.createDoc(obj, templatePrefix + templateName, implPath);
             System.out.println("生成文件：" + implPath);
         }
         /**
@@ -286,7 +292,7 @@ public class DataBase2FileService {
             }
             File implFile = new File(saveDir, table.getEntityCamelName() + "Mapper.xml");
             String implPath = implFile.getAbsolutePath();
-            CodeFreemarkerUtil.createDoc(obj, "MyBatis_" + config.getDb().getDbType(), implPath);
+            CodeFreemarkerUtil.createDoc(obj, templatePrefix + "MyBatis_" + config.getDb().getDbType(), implPath);
             System.out.println("生成文件：" + implPath);
         }
     }
@@ -303,7 +309,8 @@ public class DataBase2FileService {
         File saveFile = new File(saveDir, table.getEntityCamelName() + "Service.java");
         String savePath = saveFile.getAbsolutePath();
         System.out.println("生成文件：" + savePath);
-        CodeFreemarkerUtil.createDoc(obj, "Service", savePath);
+        String templatePrefix = CodeUtil.convertToCamelCase(module.getPersistance());
+        CodeFreemarkerUtil.createDoc(obj, templatePrefix + "Service", savePath);
     }
 
     /**
@@ -318,7 +325,8 @@ public class DataBase2FileService {
         File saveFile = new File(saveDir, table.getEntityCamelName() + "Service.java");
         String savePath = saveFile.getAbsolutePath();
         System.out.println("生成文件：" + savePath);
-        CodeFreemarkerUtil.createDoc(obj, "ServiceInterface", savePath);
+        String templatePrefix = CodeUtil.convertToCamelCase(module.getPersistance());
+        CodeFreemarkerUtil.createDoc(obj, templatePrefix + "ServiceInterface", savePath);
         // 实现文件
         File implDir =
                 getSaveFilePath(module, module.getServicePackage() + File.separator + module.getServiceImplPackage());
@@ -328,7 +336,7 @@ public class DataBase2FileService {
         if (module.getPersistance().equals("jpa")) {
             templateName = "ServiceImpl_jpa";
         }
-        CodeFreemarkerUtil.createDoc(obj, templateName, implPath);
+        CodeFreemarkerUtil.createDoc(obj, templatePrefix + templateName, implPath);
         System.out.println("生成文件：" + implPath);
     }
 
@@ -349,7 +357,8 @@ public class DataBase2FileService {
             templateName = "Action_" + module.getFramework();
         }
         String savePath = saveFile.getAbsolutePath();
-        CodeFreemarkerUtil.createDoc(obj, templateName, savePath);
+        String templatePrefix = CodeUtil.convertToCamelCase(module.getPersistance());
+        CodeFreemarkerUtil.createDoc(obj, templatePrefix + templateName, savePath);
         System.out.println("生成文件：" + savePath);
     }
 
@@ -366,7 +375,8 @@ public class DataBase2FileService {
 
         String savePath = saveFile.getAbsolutePath();
         System.out.println("生成文件：" + savePath);
-        CodeFreemarkerUtil.createDoc(obj, "View", savePath);
+        String templatePrefix = CodeUtil.convertToCamelCase(module.getPersistance());
+        CodeFreemarkerUtil.createDoc(obj, templatePrefix + "View", savePath);
     }
 
     /**
@@ -394,6 +404,7 @@ public class DataBase2FileService {
         JSONObject obj = (JSONObject) JSON.toJSON(table);
         setBaseInfo(obj, module);
         File saveDir = new File(config.getBaseDir(), "webapp/" + module.getName());
+        String templatePrefix = CodeUtil.convertToCamelCase(module.getPersistance());
         // getSaveFilePath(module,module.getViewPackage());
         for (String action : actions) {
             // 生成文件类型
@@ -413,7 +424,7 @@ public class DataBase2FileService {
             } else {
                 templateDir = templateDir + module.getTheme() + "/";
             }
-            CodeFreemarkerUtil.createDoc(obj, templateDir + action, savePath);
+            CodeFreemarkerUtil.createDoc(obj, templatePrefix + templateDir + action, savePath);
             // } else {
             //	 CodeFreemarkerUtil.createDoc(obj, pageType+"/"+action, savePath);
             // }
@@ -502,6 +513,18 @@ public class DataBase2FileService {
             e.printStackTrace();
         }
         return result.toString();
+    }
+
+    public static ITableService getTableServiceInstance(String dbType) {
+        dbType = dbType.toLowerCase();
+        if (dbType.equals("mysql")) {
+            return new MysqlTableService();
+        } else if (dbType.equals("oracle")) {
+            return new OracleTableService();
+        } else if (dbType.equals("sqlserver")) {
+            return new SqlServerTableService();
+        }
+        throw new RuntimeException("不支持的数据库类型");
     }
 }
 

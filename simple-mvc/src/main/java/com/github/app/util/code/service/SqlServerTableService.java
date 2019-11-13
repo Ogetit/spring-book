@@ -1,6 +1,7 @@
 package com.github.app.util.code.service;
 
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -15,7 +16,7 @@ import com.github.app.util.code.model.CodeTable;
 import com.github.app.util.code.model.CodeTableConf;
 import com.github.app.util.code.util.CodeUtil;
 
-public class OracleTableService implements ITableService {
+public class SqlServerTableService implements ITableService {
 
     private CodeConfig config;
 
@@ -40,13 +41,10 @@ public class OracleTableService implements ITableService {
             Class.forName(config.getDb().getDriver());
             con = DriverManager
                     .getConnection(config.getDb().getUrl(), config.getDb().getUser(), config.getDb().getPwd());
-            // 获取所有表名  
+            // 获取所有表名
             String showTablesSql = "";
-            showTablesSql = "select table_name from user_tables where table_name like ? and owner=upper(?)";
-            // ORACLE查询所有表格名称命令
+            showTablesSql = "SELECT [name] FROM sys.objects ds  where type='U' and [name] like '" + pattern + "'";
             ps = con.prepareStatement(showTablesSql);
-            ps.setString(1, pattern);
-            ps.setString(2, config.getDb().getUser());
             rs = ps.executeQuery();
 
             // 循环生成所有表的表信息
@@ -76,33 +74,30 @@ public class OracleTableService implements ITableService {
      * @param module
      * @param con
      */
+    @Override
     public CodeTable getTable(CodeTableConf tbConf, CodeModule module, Connection con) throws SQLException {
         String tableName = tbConf.getName();
         CodeTable table = new CodeTable();
         table.setTableFullName(tableName);
         table.setTableName(tableName);
         if (module.isDeleteTablePrefix() && !CodeUtil.isEmpty(tbConf.getPrefix())) {
-            table.setTableName(tableName.toLowerCase().replaceFirst(tbConf.getPrefix().toLowerCase(), ""));
+            table.setTableName(tableName.toLowerCase().replaceFirst(tbConf.getPrefix(), ""));
         }
         System.out.println(tbConf);
         //获取表各字段的信息
-        table.setModule(module);
         getTableColumns(table, con);
         table.setPrimaryKey(getTablePrimaryKey(tableName, con));
         table.setPrimaryKeys(getTablePrimaryKeys(tableName, con));
         table.setPrimaryProperty(CodeUtil.convertToFirstLetterLowerCaseCamelCase(table.getPrimaryKey()));
         table.setRemark(getTableRemark(tableName, con));
         table.setPrimaryKeyType(getColumnType(table, table.getPrimaryKey()));
-        String propertyType = CodeUtil.convertType(table.getPrimaryKeyType());
-        if (null != table.getModule() && "hibernate".equals(table.getModule().getPersistance())) {
-            propertyType = "Integer".equals(propertyType) ? "Long" : propertyType;
-        }
-        table.setPrimaryPropertyType(propertyType);
+        table.setPrimaryPropertyType(CodeUtil.convertType(table.getPrimaryKeyType()));
         table.setPrimaryCamelProperty(CodeUtil.convertToCamelCase(table.getPrimaryKey()));
         table.setEntityCamelName(
                 CodeUtil.isEmpty(tbConf.getEntityName()) ? CodeUtil.convertToCamelCase(table.getTableName())
                         : tbConf.getEntityName());
         table.setEntityName(CodeUtil.convertToFirstLetterLowerCaseCamelCase(table.getTableName()));
+        table.setModule(module);
         //设置子表的entity属性
         if (!tbConf.getSubTables().isEmpty()) {
             List<CodeTable> subTables = new ArrayList<CodeTable>();
@@ -127,35 +122,50 @@ public class OracleTableService implements ITableService {
      */
     @Override
     public void getTableColumns(CodeTable table, Connection conn) throws SQLException {
-        List<String> primaryKeys = getTablePrimaryKeys(table.getTableFullName(), conn);
         //查询表主键
-        List<String> priCols = new ArrayList<String>();
-        String sql =
-                "select cu.* from user_cons_columns cu, user_constraints au where cu.constraint_name = au"
-                        + ".constraint_name and "
-                        + " au.constraint_type = 'P' AND cu.table_name = upper(?)";
-        PreparedStatement ps = conn.prepareStatement(sql);
-        ps.setString(1, table.getTableFullName());
-        ResultSet rs = ps.executeQuery();
-        if (rs.next()) {
-            priCols.add(rs.getString("column_name"));
-        }
-        rs.close();
-        ps.close();
+        StringBuffer sb = new StringBuffer();
+        sb.append(
+                " SELECT  cast(CASE WHEN col.colorder = 1 THEN obj.name ELSE '' END as varchar(100)) AS table_name , ");
+        sb.append("         cast(col.colorder as int) AS column_id ,  ");
+        sb.append("         col.name AS column_name ,  ");
+        sb.append("         cast (ISNULL(ep.[value], '') as varchar(100)) AS comments ,  ");
+        sb.append("         t.name AS data_type ,  ");
+        sb.append("         cast (col.length as int) AS data_length ,  ");
+        sb.append("         cast(ISNULL(COLUMNPROPERTY(col.id, col.name, 'Scale'), 0) as int) AS precision ,  ");
+        sb.append(
+                "         cast (CASE WHEN COLUMNPROPERTY(col.id, col.name, 'IsIdentity') = 1 THEN 'Y' ELSE '' END as "
+						+ "varchar(3)) AS seq ,  ");
+        sb.append("         cast ( CASE WHEN EXISTS ( SELECT   1 FROM     dbo.sysindexes si  ");
+        sb.append(
+                "                                     INNER JOIN dbo.sysindexkeys sik ON si.id = sik.id AND si.indid "
+						+ "= sik.indid  ");
+        sb.append(
+                "                                     INNER JOIN dbo.syscolumns sc ON sc.id = sik.id AND sc.colid = "
+						+ "sik.colid  ");
+        sb.append(
+                "                                     INNER JOIN dbo.sysobjects so ON so.name = si.name AND so.xtype "
+						+ "= 'PK'  ");
+        sb.append(
+                "                            WHERE sc.id = col.id AND sc.colid = col.colid ) THEN 'Y' ELSE '' END as "
+						+ "varchar(3)) AS prim ,  ");
+        sb.append("         cast (CASE WHEN col.isnullable = 1 THEN 'Y' ELSE '' END as varchar(3)) AS nullable ,  ");
+        sb.append("         cast (ISNULL(comm.text, '') as varchar(30)) AS data_default  ");
+        sb.append(" FROM dbo.syscolumns col  ");
+        sb.append("         LEFT  JOIN dbo.systypes t ON col.xtype = t.xusertype  ");
+        sb.append(
+                "         inner JOIN dbo.sysobjects obj ON col.id = obj.id AND obj.xtype = 'U' AND obj.status >= 0  ");
+        sb.append("         LEFT  JOIN dbo.syscomments comm ON col.cdefault = comm.id  ");
+        sb.append(
+                "         LEFT  JOIN sys.extended_properties ep ON col.id = ep.major_id AND col.colid = ep.minor_id "
+						+ "AND ep.name = 'MS_Description'  ");
+        sb.append(
+                "         LEFT  JOIN sys.extended_properties epTwo ON obj.id = epTwo.major_id AND epTwo.minor_id = 0 "
+						+ "AND epTwo.name = 'MS_Description'  ");
+        sb.append(" WHERE   obj.name = ? ORDER BY col.colorder ; ");
+        String sql = sb.toString();
+        PreparedStatement ps;
+        ResultSet rs;
 
-        //查询所有字段
-        sql = "SELECT USER_TAB_COLS.TABLE_NAME, USER_TAB_COLS.COLUMN_NAME , "
-                + "USER_TAB_COLS.DATA_TYPE, "
-                + "USER_TAB_COLS.DATA_LENGTH , "
-                + " USER_TAB_COLS.NULLABLE, "
-                + " USER_TAB_COLS.COLUMN_ID, "
-                + " user_tab_cols.data_default,"
-                + "    user_col_comments.comments "
-                + "FROM USER_TAB_COLS  "
-                + "inner join user_col_comments on "
-                + " user_col_comments.TABLE_NAME=USER_TAB_COLS.TABLE_NAME "
-                + "and user_col_comments.COLUMN_NAME=USER_TAB_COLS.COLUMN_NAME "
-                + "where  USER_TAB_COLS.Table_Name=upper(?) ORDER BY COLUMN_ID ASC";
         ps = conn.prepareStatement(sql);
         ps.setString(1, table.getTableFullName());
         rs = ps.executeQuery();
@@ -164,60 +174,39 @@ public class OracleTableService implements ITableService {
             String colName = rs.getString("column_name");
             col.setColumnName(colName);
             String type = rs.getString("data_type").toUpperCase();
-            if (null != table.getModule() && "jdbc".equals(table.getModule().getPersistance())) {
-                type = CodeUtil.convertJdbcType(type);
+            type = CodeUtil.convertJdbcType(type);
+            if (type.equals("NUMERIC")) {
+                type = "INTEGER";
+            } else if (type.equals("TEXT")) {
+                type = "LONGVARCHAR";
+            } else if (type.equals("DATETIME")) {
+                type = "DATE";
+            } else if (type.equals("NVARCHAR")) {
+                type = "VARCHAR";
             }
             col.setColumnType(type);
-            col.setPropertyName(CodeUtil.convertToFirstLetterLowerCaseCamelCase(colName));
-            System.out.println(table.getTableFullName() + ":::" + colName + ":::" + col.getColumnType());
-            String propertyType = CodeUtil.convertType(col.getColumnType());
-            if (null != table.getModule() && "hibernate".equals(table.getModule().getPersistance())) {
-                propertyType = "Integer".equals(propertyType) ? "Long" : propertyType;
-            }
-            col.setPropertyType(propertyType);
-            col.setPropertyCamelName(CodeUtil.convertToCamelCase(colName));
-            col.setLength(rs.getLong("data_length"));
-            col.setNullable(rs.getString("nullable").equals("YES") || rs.getString("nullable").equals("Y"));
-            col.setDefaultValue(rs.getString("data_default"));
             col.setRemark(rs.getString("comments"));
+            col.setPropertyName(CodeUtil.convertToFirstLetterLowerCaseCamelCase(colName));
+            col.setPropertyType(CodeUtil.convertType(col.getColumnType()));
+            col.setPropertyCamelName(CodeUtil.convertToCamelCase(colName));
+            col.setNullable(rs.getString("nullable").equals("Y"));
+            col.setLength(rs.getLong("data_length"));
+            col.setDefaultValue(rs.getString("data_default"));
 
-            for (String primaryKey : primaryKeys) {
-                if (colName.equalsIgnoreCase(primaryKey)) {
-                    col.setPrimaryKey(true);
-                    break;
-                }
+            String colKey = rs.getString("prim");
+            if ("Y".equals(colKey)) {
+                col.setPrimaryKey(true);
             }
-
-            // String colKey = rs.getString("column_key");
-            // if (!isPrimaryKey(priCols,colKey)) {
-            // 	 col.setPrimaryKey(true);
-            // }
             if (col.getPropertyType().indexOf(".") != -1 && !CodeUtil
                     .existsType(table.getImportClassList(), col.getPropertyType())) {
                 table.getImportClassList().add(col.getPropertyType());
             }
+            col.setIdentity("y".equalsIgnoreCase(rs.getString("seq")));
             table.getColumns().add(col);
         }
         rs.close();
         ps.close();
 
-    }
-
-    /**
-     * 判断是否是主键
-     *
-     * @param priCols    主键列表
-     * @param columnName 要判断的列名
-     *
-     * @return
-     */
-    private boolean isPrimaryKey(List<String> priCols, String columnName) {
-        for (String pri : priCols) {
-            if (pri.equalsIgnoreCase(columnName)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     @Override
@@ -231,20 +220,13 @@ public class OracleTableService implements ITableService {
 
     @Override
     public List<String> getTablePrimaryKeys(String tableName, Connection con) throws SQLException {
-        // DatabaseMetaData dbMeta = con.getMetaData();
-        // ResultSet rs = dbMeta.getPrimaryKeys(null,null,tableName);
         List<String> keys = new ArrayList<String>();
-        String sql =
-                "select a.constraint_name,a.column_name from user_cons_columns a, user_constraints b  where a"
-                        + ".constraint_name = b.constraint_name  and b.constraint_type = 'P' and a.table_name = ?";
-        PreparedStatement stmt = con.prepareStatement(sql);
-        stmt.setString(1, tableName.toUpperCase());
-        ResultSet rs = stmt.executeQuery();
-        while (rs.next()) {
+        DatabaseMetaData dbMeta = con.getMetaData();
+        ResultSet rs = dbMeta.getPrimaryKeys(null, null, tableName);
+        if (rs.next()) {
             keys.add(rs.getString("COLUMN_NAME"));
         }
         rs.close();
-        stmt.close();
         return keys;
     }
 
@@ -281,7 +263,8 @@ public class OracleTableService implements ITableService {
     @Override
     public String getTableRemark(String tableName, Connection con) throws SQLException {
         String remark = "";
-        String sql = "SELECT COMMENTS FROM USER_TAB_COMMENTS WHERE table_name=upper(?)";
+        String sql =
+                "SELECT cast (ds.value as varchar(100)) comments FROM sys.extended_properties ds LEFT JOIN sysobjects tbs ON ds.major_id=tbs.id WHERE  ds.minor_id=0 and tbs.name=?";
         PreparedStatement ps = con.prepareStatement(sql);
         ps.setString(1, tableName);
         ResultSet rs = ps.executeQuery();
@@ -290,6 +273,7 @@ public class OracleTableService implements ITableService {
         }
         rs.close();
         ps.close();
-        return remark == null ? tableName : remark;
+        return remark;
     }
+
 }
