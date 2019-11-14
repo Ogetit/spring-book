@@ -14,23 +14,6 @@
         </param-value>
     </context-param>
 
-    <!-- log4j2-begin -->
-    <!--<listener>-->
-        <!--<listener-class>org.apache.logging.log4j.web.Log4jServletContextListener</listener-class>-->
-    <!--</listener>-->
-    <!--<filter>-->
-        <!--<filter-name>log4jServletFilter</filter-name>-->
-        <!--<filter-class>org.apache.logging.log4j.web.Log4jServletFilter</filter-class>-->
-    <!--</filter>-->
-    <!--<filter-mapping>-->
-        <!--<filter-name>log4jServletFilter</filter-name>-->
-        <!--<url-pattern>/*</url-pattern>-->
-        <!--<dispatcher>REQUEST</dispatcher>-->
-        <!--<dispatcher>FORWARD</dispatcher>-->
-        <!--<dispatcher>INCLUDE</dispatcher>-->
-        <!--<dispatcher>ERROR</dispatcher>-->
-    <!--</filter-mapping>-->
-
     <!--Spring ApplicationContext 载入 -->
     <listener>
         <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
@@ -137,4 +120,12 @@
         <error-code>503</error-code>
         <location>/WEB-INF/views/error/503.jsp</location>
     </error-page>
+
+    <welcome-file-list>
+        <welcome-file>index</welcome-file>
+    </welcome-file-list>
+
+    <session-config>
+        <session-timeout>30</session-timeout>
+    </session-config>
 </web-app>

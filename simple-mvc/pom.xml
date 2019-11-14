@@ -23,17 +23,18 @@
         <servlet.jsp.version>2.0</servlet.jsp.version>
         <!--jdbc驱动-->
         <mysql.dirver.version>8.0.15</mysql.dirver.version>
-        <oracle.driver.version>12.1.0.2</oracle.driver.version>
+        <!--<oracle.driver.version>12.1.0.2</oracle.driver.version>-->
         <!--utils-->
         <fastjson.version>1.2.58.sec06</fastjson.version>
         <druid.version>1.1.21</druid.version>
         <mail.version>1.4.7</mail.version>
         <freemarker.version>2.3.29</freemarker.version>
-        <slf4j.version>1.7.10</slf4j.version>
-        <log4j.version>1.2.17</log4j.version>
+        <slf4j.version>1.7.21</slf4j.version>
+        <apache.log4j.version>2.9.1</apache.log4j.version>
         <aspectj.version>1.6.12</aspectj.version>
         <cglib.version>2.2.2</cglib.version>
         <commons-fileupload.version>1.4</commons-fileupload.version>
+        <commons-lang.version>2.6</commons-lang.version>
         <!--<aspectj.version>1.9.2</aspectj.version>-->
         <!--<cglib.version>3.2.12</cglib.version>-->
         <jackson.version>2.9.5</jackson.version>
@@ -118,7 +119,6 @@
             <!--<version>${oracle.driver.version}</version>-->
         <!--</dependency>-->
 
-
         <!--utils-->
         <dependency>
             <groupId>com.alibaba</groupId>
@@ -148,15 +148,14 @@
             <version>${slf4j.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-            <version>${slf4j.version}</version>
-            <scope>test</scope>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>${apache.log4j.version}</version>
         </dependency>
         <dependency>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-            <version>${log4j.version}</version>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-slf4j-impl</artifactId>
+            <version>${apache.log4j.version}</version>
         </dependency>
 
         <!-- AspectJ -->
@@ -184,6 +183,14 @@
             <artifactId>commons-fileupload</artifactId>
             <version>${commons-fileupload.version}</version>
         </dependency>
+
+        <!-- commons-lang -->
+        <dependency>
+            <groupId>commons-lang</groupId>
+            <artifactId>commons-lang</artifactId>
+            <version>${commons-lang.version}</version>
+        </dependency>
+
 
         <!-- Swagger API -->
         <dependency>
@@ -254,7 +261,7 @@
 
     <!--按当前配置打包-->
     <build>
-        <finalName>${project.name}-${maven.build.timestamp}</finalName>
+        <finalName>${project.name}</finalName>
         <filters>
             <filter>${basedir}/src/filters/${package.environment}.properties</filter>
         </filters>

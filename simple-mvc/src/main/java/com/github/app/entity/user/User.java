@@ -8,11 +8,11 @@ import io.swagger.annotations.ApiModelProperty;
 /**
  * 应用用户表 对应实体类
  * @author ouyangjie
- * @Title: AppUser
+ * @Title: User
  * @ProjectName ifs-marketing
  */
 @ApiModel(value = "应用用户表")
-public class AppUser implements Serializable {
+public class User implements Serializable {
 
     private static final long serialVersionUID = 1L;
 

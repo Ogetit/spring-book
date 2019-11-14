@@ -168,6 +168,13 @@ public class WebRequestUtil {
      * @param request
      */
     public static String getRequestInfoStr(HttpServletRequest request) {
+        return getRequestInfoStr(request, true);
+    }
+    /**
+     * 获取请求字符串信息
+     * @param request
+     */
+    public static String getRequestInfoStr(HttpServletRequest request, boolean withReqBody) {
         StringBuilder logInfo = new StringBuilder();
         String queryString = request.getQueryString();
         String requestURI = request.getRequestURI();
@@ -186,7 +193,7 @@ public class WebRequestUtil {
                 .append("\"Method\":\"").append(method).append("\"")
                 .append("}");
         // 请求题数据转json字符串展示
-        if (METHOD_GET.equalsIgnoreCase(method)) {
+        if (withReqBody) {
             String jsonStr;
             if (!StringUtils.isEmpty(contentType) && contentType.contains(CONTENT_TYPE_JSON)) {
                 jsonStr = WebRequestUtil.getJSONParam(request);
@@ -194,6 +201,8 @@ public class WebRequestUtil {
                 jsonStr = WebRequestUtil.parseParamToJSONStr(request);
             }
             logInfo.append("==>params:").append(jsonStr).append("]");
+        } else {
+            logInfo.append("]");
         }
         return logInfo.toString();
     }

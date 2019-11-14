@@ -5,11 +5,7 @@ import org.springframework.stereotype.Repository;
 
 import com.github.app.util.jdbc.JdbcBaseDao;
 import ${basePackage}.${moduleName}.${entityPackage}.${entityCamelName};
-<#if importClassList??>
-	<#list importClassList as imp>
-import ${imp!};
-	</#list>
-</#if>
+import java.util.List;
 <#if primaryKey??>
 import java.util.HashMap;
 import java.util.Map;
@@ -26,6 +22,20 @@ import java.util.Map;
 @Repository
 public class ${entityCamelName}Dao extends JdbcBaseDao<${entityCamelName}> {
     /**
+     * 通用查询方法
+     */
+    public List<${entityCamelName}> select(${entityCamelName} entity) {
+        String sql = "SELECT * FROM ${tableFullName!} WHERE 1=1 ";
+        <#if columns??>
+        <#list columns as col>
+        if (null != entity.get${col.propertyCamelName}()) {
+            sql += " AND ${col.columnName}=:${col.propertyName}";
+        }
+        </#list>
+        </#if>
+        return super.queryForList(sql, entity);
+    }
+    /**
      * 通用单表插入方法
      */
     public void insert(${entityCamelName} entity) {
@@ -40,10 +50,9 @@ public class ${entityCamelName}Dao extends JdbcBaseDao<${entityCamelName}> {
                 </#list>
             </#if>
                 + ")";
-        this.update(sql, entity);
+        super.update(sql, entity);
     }
-
-<#if primaryKey??>
+    <#if primaryKey??>
     /**
      * 通用单表更新方法
      */
@@ -59,7 +68,7 @@ public class ${entityCamelName}Dao extends JdbcBaseDao<${entityCamelName}> {
                 </#list>
             </#if>
                 + "WHERE ${primaryKey}=:${primaryProperty}";
-        this.update(sql, entity);
+        super.update(sql, entity);
     }
     /**
      * 通用单表删除方法
@@ -68,8 +77,17 @@ public class ${entityCamelName}Dao extends JdbcBaseDao<${entityCamelName}> {
         String sql = "DELETE FROM ${tableFullName!} WHERE ${primaryKey}=:${primaryProperty}";
         Map<String, Object> map = new HashMap<String, Object>();
         map.put("${primaryProperty}", ${primaryProperty});
-        this.update(sql, map);
+        super.update(sql, map);
     }
-</#if>
+    /**
+     * 通用单表主键查询方法
+     */
+    public ${entityCamelName} fetchById(${primaryPropertyType} ${primaryProperty}) {
+        String sql = "SELECT * FROM ${tableFullName!} WHERE ${primaryKey}=:${primaryProperty}";
+        Map<String, Object> map = new HashMap<String, Object>();
+        map.put("${primaryProperty}", ${primaryProperty});
+        return super.queryForOne(sql, map);
+    }
+    </#if>
 
 }

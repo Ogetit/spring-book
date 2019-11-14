@@ -16,7 +16,7 @@ import com.github.app.util.code.model.CodeTableConf;
  * 获取数据表和数据字段信息接口
  *
  */
-public interface ITableService {
+public interface ITableRender {
 	
 	void setConfig(CodeConfig config);
 	
@@ -39,7 +39,7 @@ public interface ITableService {
      * @param conn
      * @throws SQLException
      */
-	void getTableColumns(CodeTable table, Connection conn) throws SQLException;
+	void fillTableColumns(CodeTable table, Connection conn) throws SQLException;
 
 	/**
 	 * 获取表主键

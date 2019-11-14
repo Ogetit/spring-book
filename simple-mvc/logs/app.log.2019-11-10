@@ -43,6 +43,6 @@ freemarker.core.InvalidReferenceException: [... Exception message was already pr
 	at freemarker.template.Template.process(Template.java:383)
 	at com.github.app.util.code.util.CodeFreemarkerUtil.saveFile(CodeFreemarkerUtil.java:74)
 	at com.github.app.util.code.util.CodeFreemarkerUtil.createDoc(CodeFreemarkerUtil.java:55)
-	at com.github.app.util.code.service.DataBase2FileService.generateDaoFileSimple(DataBase2FileService.java:243)
-	at com.github.app.util.code.service.DataBase2FileService.generateFiles(DataBase2FileService.java:80)
+	at com.github.app.util.code.service.DataBase2FileRender.generateDaoFileSimple(DataBase2FileService.java:243)
+	at com.github.app.util.code.service.DataBase2FileRender.generateFiles(DataBase2FileService.java:80)
 	at com.github.app.util.code.CodeConfig.main(CodeConfig.java:160)

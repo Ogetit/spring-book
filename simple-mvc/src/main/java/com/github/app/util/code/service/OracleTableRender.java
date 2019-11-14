@@ -15,7 +15,7 @@ import com.github.app.util.code.model.CodeTable;
 import com.github.app.util.code.model.CodeTableConf;
 import com.github.app.util.code.util.CodeUtil;
 
-public class OracleTableService implements ITableService {
+public class OracleTableRender implements ITableRender {
 
     private CodeConfig config;
 
@@ -76,6 +76,7 @@ public class OracleTableService implements ITableService {
      * @param module
      * @param con
      */
+    @Override
     public CodeTable getTable(CodeTableConf tbConf, CodeModule module, Connection con) throws SQLException {
         String tableName = tbConf.getName();
         CodeTable table = new CodeTable();
@@ -85,13 +86,13 @@ public class OracleTableService implements ITableService {
             table.setTableName(tableName.toLowerCase().replaceFirst(tbConf.getPrefix().toLowerCase(), ""));
         }
         System.out.println(tbConf);
+
         //获取表各字段的信息
-        table.setModule(module);
-        getTableColumns(table, con);
+        fillTableColumns(table, con);
+        // 表主键相关信息
         table.setPrimaryKey(getTablePrimaryKey(tableName, con));
         table.setPrimaryKeys(getTablePrimaryKeys(tableName, con));
         table.setPrimaryProperty(CodeUtil.convertToFirstLetterLowerCaseCamelCase(table.getPrimaryKey()));
-        table.setRemark(getTableRemark(tableName, con));
         table.setPrimaryKeyType(getColumnType(table, table.getPrimaryKey()));
         String propertyType = CodeUtil.convertType(table.getPrimaryKeyType());
         if (null != table.getModule() && "hibernate".equals(table.getModule().getPersistance())) {
@@ -99,11 +100,13 @@ public class OracleTableService implements ITableService {
         }
         table.setPrimaryPropertyType(propertyType);
         table.setPrimaryCamelProperty(CodeUtil.convertToCamelCase(table.getPrimaryKey()));
-        table.setEntityCamelName(
-                CodeUtil.isEmpty(tbConf.getEntityName()) ? CodeUtil.convertToCamelCase(table.getTableName())
-                        : tbConf.getEntityName());
+
+        // 表信息
+        table.setRemark(getTableRemark(tableName, con));
+        table.setEntityCamelName(CodeUtil.isEmpty(tbConf.getEntityName()) ? CodeUtil.convertToCamelCase(table.getTableName()) : tbConf.getEntityName());
         table.setEntityName(CodeUtil.convertToFirstLetterLowerCaseCamelCase(table.getTableName()));
-        //设置子表的entity属性
+        // 设置子表的 entity 属性
+        table.setModule(module);
         if (!tbConf.getSubTables().isEmpty()) {
             List<CodeTable> subTables = new ArrayList<CodeTable>();
             for (CodeTableConf tc : tbConf.getSubTables()) {
@@ -126,7 +129,7 @@ public class OracleTableService implements ITableService {
      * @throws SQLException
      */
     @Override
-    public void getTableColumns(CodeTable table, Connection conn) throws SQLException {
+    public void fillTableColumns(CodeTable table, Connection conn) throws SQLException {
         List<String> primaryKeys = getTablePrimaryKeys(table.getTableFullName(), conn);
         //查询表主键
         List<String> priCols = new ArrayList<String>();
@@ -234,9 +237,11 @@ public class OracleTableService implements ITableService {
         // DatabaseMetaData dbMeta = con.getMetaData();
         // ResultSet rs = dbMeta.getPrimaryKeys(null,null,tableName);
         List<String> keys = new ArrayList<String>();
-        String sql =
-                "select a.constraint_name,a.column_name from user_cons_columns a, user_constraints b  where a"
-                        + ".constraint_name = b.constraint_name  and b.constraint_type = 'P' and a.table_name = ?";
+        String sql = "select a.constraint_name,a.column_name"
+                + " from user_cons_columns a, user_constraints b"
+                + "  where a.constraint_name = b.constraint_name"
+                + " and b.constraint_type = 'P'"
+                + " and a.table_name = ?";
         PreparedStatement stmt = con.prepareStatement(sql);
         stmt.setString(1, tableName.toUpperCase());
         ResultSet rs = stmt.executeQuery();

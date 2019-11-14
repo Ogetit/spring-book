@@ -66,7 +66,7 @@ private static List<CodeTableConf> initTableConf(){
  * 直接运行改类，生成代码
  */
 public static void main(String[] args) throws IOException, ClassNotFoundException, SQLException {
-    DataBase2FileService reverser = new DataBase2FileService();
+    DataBase2FileRender reverser = new DataBase2FileRender();
     /**
      * @param entity 是否生成 Entity
      * @param dao 是否生成 Dao

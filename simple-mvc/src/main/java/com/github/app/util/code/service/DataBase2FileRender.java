@@ -17,8 +17,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.util.StringUtils;
-
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.github.app.util.code.CodeConfig;
@@ -33,15 +31,15 @@ import com.github.app.util.code.util.CodeUtil;
  * 通过数据库表结构生成表对应的实体类以及根据entity,view,action、service和dao模板生成基本的相关文件，支持深度主从表关系<br>
  * 后期可考虑抽像出一些接口来实现更多的持久层、展现层框架
  */
-public class DataBase2FileService {
+public class DataBase2FileRender {
 
     private CodeConfig config;
 
-    public DataBase2FileService() {
+    public DataBase2FileRender() {
         config = CodeConfig.loadConfig();
     }
 
-    private ITableService tableService;
+    private ITableRender tableService;
 
     /**
      * 主方法，反转生成相关文件
@@ -61,18 +59,18 @@ public class DataBase2FileService {
         tableService = getTableServiceInstance(config.getDb().getDbType());
         tableService.setConfig(config);
         Class.forName(config.getDb().getDriver());
-        Connection con =
-                DriverManager.getConnection(config.getDb().getUrl(), config.getDb().getUser(), config.getDb().getPwd());
+        Connection con = DriverManager.getConnection(config.getDb().getUrl(), config.getDb().getUser(), config.getDb().getPwd());
         for (CodeModule module : config.getModules()) {
             System.out.println("module=" + module.getName());
-            //如果没有配置数据表，则默认加载模块名为前缀的所有数据表
+            // 如果没有配置数据表，则默认加载模块名为前缀的所有数据表
             if (module.getTables() == null || module.getTables().isEmpty()) {
                 module.setTables(tableService.getAllTables(module.getName() + "%"));
             }
-            //系统的model文件
+            // 系统的model文件
             if (module.getTables() != null) {
                 for (CodeTableConf tbConf : module.getTables()) {
-                    CodeTable table = tableService.getTable(tbConf, module, con);//获取一个表的相关信息
+                    // 获取一个表的相关信息
+                    CodeTable table = tableService.getTable(tbConf, module, con);
                     if (entity) {
                         generateEntityFile(table, module);
                     }
@@ -117,7 +115,7 @@ public class DataBase2FileService {
             generateJspFile(tb, module);
         }
         StringBuffer sb = new StringBuffer();
-        //若是使用dorado框架，则生成model的数据块
+        // 若是使用dorado框架，则生成model的数据块
         String modleString = (generateDoradoModelString(tb, module));
         sb.append(modleString);
         if (!tb.getSubTables().isEmpty()) {
@@ -515,14 +513,14 @@ public class DataBase2FileService {
         return result.toString();
     }
 
-    public static ITableService getTableServiceInstance(String dbType) {
+    public static ITableRender getTableServiceInstance(String dbType) {
         dbType = dbType.toLowerCase();
         if (dbType.equals("mysql")) {
-            return new MysqlTableService();
+            return new MysqlTableRender();
         } else if (dbType.equals("oracle")) {
-            return new OracleTableService();
+            return new OracleTableRender();
         } else if (dbType.equals("sqlserver")) {
-            return new SqlServerTableService();
+            return new SqlServerTableRender();
         }
         throw new RuntimeException("不支持的数据库类型");
     }

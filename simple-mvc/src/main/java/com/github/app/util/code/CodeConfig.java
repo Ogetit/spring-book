@@ -9,7 +9,7 @@ import com.github.app.util.code.model.CodeDb;
 import com.github.app.util.code.model.CodeModule;
 import com.github.app.util.code.model.CodePackageSetting;
 import com.github.app.util.code.model.CodeTableConf;
-import com.github.app.util.code.service.DataBase2FileService;
+import com.github.app.util.code.service.DataBase2FileRender;
 
 /**
  * 读取配置文件
@@ -148,15 +148,15 @@ public class CodeConfig {
 
         CodeTableConf m = new CodeTableConf();
         m.setName("APP_USER");
-        m.setPrefix("APP_");
+        m.setPrefix("app_");
         result.add(m);
 
         return result;
     }
 
     public static void main(String[] args) throws IOException, ClassNotFoundException, SQLException {
-        DataBase2FileService reverser = new DataBase2FileService();
+        DataBase2FileRender reverser = new DataBase2FileRender();
         // 只生成 Entity
-        reverser.generateFiles(true, true, false);
+        reverser.generateFiles(true, true, true);
     }
 }

@@ -89,7 +89,9 @@ public class SwaggerApiConfig {
         public String getOperationPath(String operationPath) {
             UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromPath("/");
             String uri = removeAdjacentForwardSlashes(uriComponentsBuilder.path(operationPath).build().toString());
-            return uri + ".json";
+            // 自定义 url 样式
+            // return uri + ".json";
+            return uri;
         }
 
         @Override
