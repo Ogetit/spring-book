@@ -1,4 +1,4 @@
-package com.github.spring.web.request;
+package com.github.app.util.servlet.request;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;

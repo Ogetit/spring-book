@@ -1,4 +1,4 @@
-package com.github.spring.web.response;
+package com.github.app.util.servlet.response;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -24,6 +24,8 @@ public class WebResponseUtil {
             out.print(jsonObject);
             out.flush();
             out.close();
+        } catch (Exception e) {
+            logger.error("输出结果异常！", e);
         } finally {
             if (out != null) {
                 try {

@@ -42,6 +42,16 @@
         <url-pattern>/*</url-pattern>
     </filter-mapping>
 
+    <!--HttpServletRequest替换器，用于后面多次读取-->
+    <filter>
+        <filter-name>httpServletRequestReplacedFilter</filter-name>
+        <filter-class>com.github.app.util.servlet.filter.HttpServletRequestReplacedFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>httpServletRequestReplacedFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
     <!--请求处理过滤器-->
     <servlet>
         <servlet-name>dispatcher</servlet-name>

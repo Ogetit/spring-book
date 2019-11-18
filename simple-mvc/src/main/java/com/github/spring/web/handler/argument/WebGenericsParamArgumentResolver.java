@@ -19,7 +19,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.util.ParameterizedTypeImpl;
 import com.github.spring.web.annotation.GenericsRequestBody;
-import com.github.spring.web.request.WebRequestUtil;
+import com.github.app.util.servlet.request.WebRequestUtil;
 
 /**
  * 文件描述 含有泛型对象参数json转对象
