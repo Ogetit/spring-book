@@ -1,5 +1,7 @@
 package com.github.spring.web.adapter;
 
+import java.io.IOException;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -17,11 +19,30 @@ public class LogInterceptorAdapter extends HandlerInterceptorAdapter {
     @Override
     public boolean preHandle(final HttpServletRequest request, final HttpServletResponse response, Object handler)
             throws Exception {
+        if (checkSessionUser(request, response)) {
+            return super.preHandle(request, response, handler);
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * 检查 SessionUser
+     * @param request
+     * @param response
+     * @return
+     * @throws IOException
+     */
+    private boolean checkSessionUser(final HttpServletRequest request, final HttpServletResponse response) throws IOException {
         final HttpSession session = request.getSession(true);
-        // TODO：使用时候需要获取用户信息
         Object loginUser = session.getAttribute(WebConst.USER_SESSION_KEY);
-        // redis 用户一个小时过期一次
-        String redirect403Url = "/error/403.jsp";
+        // 游客可以访问
+        if (null == loginUser) {
+            return true;
+        }
+        // TODO：使用时候需要获取用户信息
+        // 无权限页面
+        String redirect403Url = "/error/403";
         if (loginUser == null) {
             response.sendRedirect(redirect403Url);
             return false;
@@ -32,6 +53,6 @@ public class LogInterceptorAdapter extends HandlerInterceptorAdapter {
             response.sendRedirect(redirect403Url);
             return false;
         }
-        return super.preHandle(request, response, handler);
+        return true;
     }
 }

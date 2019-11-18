@@ -6,6 +6,7 @@ target/
 
 # Log Files
 *.log
+*.log.gz
 
 # About IntelliJ
 *.iml

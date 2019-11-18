@@ -21,6 +21,7 @@
         <!--servlet-->
         <servlet.version>3.1.0</servlet.version>
         <servlet.jsp.version>2.0</servlet.jsp.version>
+        <servlet.jstl.version>1.2</servlet.jstl.version>
         <!--jdbc驱动-->
         <mysql.dirver.version>8.0.15</mysql.dirver.version>
         <!--<oracle.driver.version>12.1.0.2</oracle.driver.version>-->
@@ -106,6 +107,12 @@
             <version>${servlet.jsp.version}</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>jstl</groupId>
+            <artifactId>jstl</artifactId>
+            <version>${servlet.jstl.version}</version>
+        </dependency>
+
 
         <!--jdbc驱动-->
         <dependency>
