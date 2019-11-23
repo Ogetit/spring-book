@@ -6,9 +6,9 @@
 
     <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource" destroy-method="close">
         <property name="driverClassName" value="${database.driver}"/>
-        <property name="url" value="${jdbc.url}"/>
-        <property name="username" value="${jdbc.username}"/>
-        <property name="password" value="${jdbc.password}"/>
+        <property name="url" value="${database.url}"/>
+        <property name="username" value="${database.username}"/>
+        <property name="password" value="${database.password}"/>
         <property name="filters" value="config"/>
         <property name="testOnBorrow" value="false"/>
         <property name="removeAbandoned" value="true"/>
@@ -20,7 +20,7 @@
         <property name="logAbandoned" value="true"/>
         <property name="timeBetweenEvictionRunsMillis" value="10800000"/>
         <property name="validationQuery" value="select 1 from dual"/>
-        <property name="connectionProperties" value="druid.stat.slowSqlMillis=5000;config.decrypt=${jdbc.decrypt};config.decrypt.key=${jdbc.publickey}"/>
+        <property name="connectionProperties" value="druid.stat.slowSqlMillis=5000;config.decrypt=${database.decrypt};config.decrypt.key=${database.publickey}"/>
     </bean>
 
     <!-- Hibernate 配置 -->

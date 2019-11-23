@@ -10,6 +10,8 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.lang.StringUtils;
+
 import com.github.app.util.servlet.wapper.ServletRequestWrapper;
 
 /**
@@ -27,14 +29,14 @@ public class HttpServletRequestReplacedFilter implements Filter {
     public void doFilter(ServletRequest request, ServletResponse response,
                          FilterChain chain) throws IOException, ServletException {
         ServletRequest requestWrapper = null;
-        if (request instanceof HttpServletRequest) {
+        String contentType = request.getContentType();
+        if (request instanceof HttpServletRequest
+                && StringUtils.isNotBlank(contentType)
+                && contentType.contains("application/json")) {
             requestWrapper = new ServletRequestWrapper((HttpServletRequest) request);
-        }
-
-        if (requestWrapper == null) {
-            chain.doFilter(request, response);
-        } else {
             chain.doFilter(requestWrapper, response);
+        } else {
+            chain.doFilter(request, response);
         }
     }
 

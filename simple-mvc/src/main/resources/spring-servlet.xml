@@ -28,7 +28,7 @@
     <!--swagger相关配置-->
     <!-- 配置Swagger相关静态资源 -->
     <mvc:resources location="classpath:/META-INF/resources/" mapping="swagger-ui.html"/>
-    <mvc:resources location="classpath:/META-INF/resources/" mapping="doc.html"/>
+    <mvc:resources location="classpath:/META-INF/resources/" mapping="/doc.html"/>
     <mvc:resources location="classpath:/META-INF/resources/webjars/" mapping="/webjars/**"/>
 
     <!-- 开启对aspact注解的支持 -->
