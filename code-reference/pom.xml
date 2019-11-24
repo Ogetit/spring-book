@@ -724,4 +724,17 @@
             <version>2.7.7</version>
         </dependency>
     </dependencies>
+    <!--编译环境定义-->
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

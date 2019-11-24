@@ -30,6 +30,7 @@ target/
 *.zip
 *.tar.gz
 *.rar
+*.db
 
 # CMake
 cmake-build-debug/
