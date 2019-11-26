@@ -1,4 +1,4 @@
-package com.github.service;
+package com.github.core.auth;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -15,8 +15,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-
-import com.github.entity.AppUserDetail;
 
 /**
  * 获取登陆用户的详细信息

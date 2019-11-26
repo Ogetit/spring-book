@@ -1,6 +1,6 @@
-package com.github.config;
+package com.github.core.config;
 
-import com.github.utils.SystemUtil;
+import com.github.core.utils.SystemUtil;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 /**

@@ -117,7 +117,7 @@ function getLodop(oOBJECT,oEMBED){
             return LODOP;
         };
         //=====如下空白位置适合调用统一功能:=====
-        LODOP.SET_LICENSES("深圳胜意科技(武汉研发中心)","459716668428574917595955319056","","");
+        LODOP.SET_LICENSES("github","459716668428574917595955319056","","");
         //=======================================
         return LODOP;
     } catch(err) {alert("getLodop出错:"+err);};

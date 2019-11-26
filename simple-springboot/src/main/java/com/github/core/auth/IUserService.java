@@ -1,6 +1,4 @@
-package com.github.service;
-
-import com.github.entity.AppUserDetail;
+package com.github.core.auth;
 
 public interface IUserService {
 

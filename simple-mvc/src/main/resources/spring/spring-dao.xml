@@ -25,6 +25,8 @@
 
     <!-- Hibernate 配置 -->
     <!--<import resource="classpath:spring/dao/spring-hibernate-dao.xml"/>-->
+    <!-- mybatis 配置 -->
+    <!--<import resource="classpath:spring/dao/spring-mybatis-dao.xml"/>-->
     <!--原生 JDBC 配置-->
     <import resource="classpath:spring/dao/spring-jdbc-dao.xml"/>
 </beans>

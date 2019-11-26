@@ -1,4 +1,4 @@
-package com.github.config;
+package com.github.core.config;
 
 import com.google.code.kaptcha.impl.DefaultKaptcha;
 import com.google.code.kaptcha.util.Config;

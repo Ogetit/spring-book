@@ -1,7 +1,7 @@
-package com.github.config;
+package com.github.core.config;
 
-import com.github.service.AppUserDetailsService;
-import com.github.utils.SystemUtil;
+import com.github.core.auth.AppUserDetailsService;
+import com.github.core.utils.SystemUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -129,7 +129,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             try {
                 UserDetails userDetails = (UserDetails) authentication.getPrincipal();
                 String bh = userDetails.getUsername();
-                //TODO
+                // TODO
             } catch (Exception exception) {
             }
         }

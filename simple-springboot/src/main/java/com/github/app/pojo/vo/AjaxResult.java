@@ -1,4 +1,4 @@
-package com.github.entity;
+package com.github.app.pojo.vo;
 
 public class AjaxResult {
     public static final int SUCCESS = 1;

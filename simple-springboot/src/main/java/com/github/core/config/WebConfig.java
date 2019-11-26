@@ -1,4 +1,4 @@
-package com.github.config;
+package com.github.core.config;
 
 import java.util.Set;
 import java.util.TreeSet;

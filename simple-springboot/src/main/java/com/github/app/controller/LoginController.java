@@ -1,8 +1,8 @@
-package com.github.controller;
+package com.github.app.controller;
 
 import com.google.code.kaptcha.impl.DefaultKaptcha;
-import com.github.entity.AjaxResult;
-import com.github.utils.SystemUtil;
+import com.github.app.pojo.vo.AjaxResult;
+import com.github.core.utils.SystemUtil;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;

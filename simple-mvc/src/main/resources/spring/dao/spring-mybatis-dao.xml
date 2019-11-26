@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
+    <!--配置SqlSessionFactoryBean用于创建SqlSessionFactory-->
+    <bean id="sessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <!--注入数据源-->
+        <property name="dataSource" ref="dataSource"/>
+        <!--配置实体类所在包-->
+        <property name="typeAliasesPackage" value="com.github.app.entity"/>
+        <!--配置Mapper文件问题-->
+        <property name="mapperLocations" value="classpath*:/mapper/**"/>
+    </bean>
+    <!--配置接口扫描bean用于扫描DAO接口产生代理-->
+    <bean  class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="sqlSessionFactoryBeanName" value="sessionFactory"/>
+        <property name="basePackage" value="com.jiangzz.dao"/>
+    </bean>
+    <!--配置事务管理-->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+    <!--配置事务属性-->
+    <tx:advice id="txAdvice" transaction-manager="transactionManager" >
+        <tx:attributes>
+            <tx:method name="query*" propagation="SUPPORTS" isolation="READ_COMMITTED" read-only="true"/>
+            <tx:method name="save*" propagation="REQUIRED" isolation="READ_COMMITTED" />
+            <tx:method name="*" propagation="SUPPORTS" isolation="READ_COMMITTED" />
+        </tx:attributes>
+    </tx:advice>
+    <!--配置事务切面-->
+    <aop:config>
+        <aop:pointcut id="pc" expression="execution(* com.github.app.*.*(..))"/>
+        <aop:advisor advice-ref="txAdvice" pointcut-ref="pc"/>
+    </aop:config>
+</beans>

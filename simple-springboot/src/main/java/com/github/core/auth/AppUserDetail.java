@@ -1,6 +1,6 @@
-package com.github.entity;
+package com.github.core.auth;
 
-import com.github.utils.SystemUtil;
+import com.github.core.utils.SystemUtil;
 
 public class AppUserDetail {
     private String uid;

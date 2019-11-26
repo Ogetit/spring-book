@@ -7,7 +7,7 @@
        http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
     <!-- Hibernate配置 -->
     <bean id="sessionFactory"
-          class="org.springframework.orm.hibernate4.LocalSessionFactoryBean">
+          class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">
         <property name="dataSource" ref="dataSource"/>
         <property name="hibernateProperties">
             <props>
@@ -16,7 +16,7 @@
                 <prop key="hibernate.hbm2ddl.auto">${database.hibernate.hbm2ddl.auto}</prop>
                 <prop key="hibernate.cache.use_second_level_cache">${hibernate.cache.use_second_level_cache}</prop>
                 <prop key="hibernate.current_session_context_class">
-                    org.springframework.orm.hibernate4.SpringSessionContext
+                    org.springframework.orm.hibernate5.SpringSessionContext
                 </prop>
             </props>
         </property>
@@ -28,7 +28,7 @@
     </bean>
 
     <!-- 事务声明 -->
-    <bean id="transactionManager" class="org.springframework.orm.hibernate4.HibernateTransactionManager">
+    <bean id="transactionManager" class="org.springframework.orm.hibernate5.HibernateTransactionManager">
         <property name="sessionFactory" ref="sessionFactory"/>
     </bean>
 

@@ -1,4 +1,4 @@
-package com.github.utils;
+package com.github.core.utils;
 
 import javax.servlet.http.HttpServletRequest;
 
