@@ -8,7 +8,6 @@ import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -32,7 +31,7 @@ public class AppUserDetailsService implements UserDetailsService {
      * 服务
      */
     @Autowired
-    private IUserService userSecurity;
+    private IUserSecurityService userSecurityService;
 
     /**
      * request
@@ -43,18 +42,17 @@ public class AppUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         if (StringUtils.isEmpty(username)) {
-            username = (String) request.getSession().getAttribute("name");
+            username = (String) request.getSession().getAttribute("username");
         }
         if (StringUtils.isEmpty(username)) {
             throw new UsernameNotFoundException("用户名为空");
         }
-        if (captchaEnabled) {
+        if (this.captchaEnabled) {
             String code = request.getParameter("verifyCode");
             if (StringUtils.isEmpty(code)) {
                 throw new UsernameNotFoundException("验证码不能为空");
             }
             String verifyCode = (String) request.getSession().getAttribute("verifyCode");
-            ;
             if (verifyCode == null) {
                 throw new UsernameNotFoundException("验证码已失效");
             }
@@ -65,16 +63,14 @@ public class AppUserDetailsService implements UserDetailsService {
         AppUserDetail info = null;
         try {
             String password = request.getParameter("password");
-            info = userSecurity.getByNameAndPassword(username, password);
+            info = userSecurityService.getUserInfo(username, password);
         } catch (Exception e) {
             throw new UsernameNotFoundException("用户名或密码错误");
         }
         if (null == info) {
             throw new UsernameNotFoundException("用户名或密码错误");
         }
-        Set<GrantedAuthority> authorities = new HashSet<GrantedAuthority>();
-        SimpleGrantedAuthority authority = new SimpleGrantedAuthority("USER");
-        authorities.add(authority);
+        Set<GrantedAuthority> authorities = userSecurityService.authorities(username);
         User user = new User(username, info.getPassword(),
                 // 是否可用
                 true,

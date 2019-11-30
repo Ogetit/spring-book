@@ -1,13 +1,24 @@
 package com.github.core.auth;
 
+import java.util.Date;
+
 import com.github.core.utils.SystemUtil;
 
 public class AppUserDetail {
     private String uid;
-    private String name;
+    private String username;
     private String password;
-    private String createTime;
+    private String name;
+    private Date createTime;
     private String verifyCode;
+
+    public AppUserDetail() {}
+
+    public AppUserDetail(String username, String password) {
+        this.username = username;
+        this.setMD5Password(password);
+        this.createTime = new Date();
+    }
 
     public String getUid() {
         return uid;
@@ -17,12 +28,12 @@ public class AppUserDetail {
         this.uid = uid;
     }
 
-    public String getName() {
-        return name;
+    public String getUsername() {
+        return username;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getPassword() {
@@ -37,11 +48,19 @@ public class AppUserDetail {
         this.password = SystemUtil.md5(password);
     }
 
-    public String getCreateTime() {
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public Date getCreateTime() {
         return createTime;
     }
 
-    public void setCreateTime(String createTime) {
+    public void setCreateTime(Date createTime) {
         this.createTime = createTime;
     }
 

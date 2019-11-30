@@ -184,7 +184,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>com.github.AppApplication</mainClass>
+                            <mainClass>com.github.Application</mainClass>
                             <classpathPrefix>lib/</classpathPrefix>
                             <addClasspath>true</addClasspath>
                         </manifest>

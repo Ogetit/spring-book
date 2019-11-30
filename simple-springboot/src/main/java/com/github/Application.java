@@ -18,11 +18,11 @@ import java.util.Arrays;
  */
 @SpringBootApplication
 @ComponentScan(basePackages = {"com.github"})
-public class AppApplication {
+public class Application {
     /**
      * 日志工具
      */
-    private Logger logger = LoggerFactory.getLogger(AppApplication.class);
+    private Logger logger = LoggerFactory.getLogger(Application.class);
 
     /**
      * 主程序
@@ -30,7 +30,7 @@ public class AppApplication {
      * @param args 构造函数
      */
     public static void main(String[] args) {
-        SpringApplication.run(AppApplication.class, args);
+        SpringApplication.run(Application.class, args);
     }
 
     /**
