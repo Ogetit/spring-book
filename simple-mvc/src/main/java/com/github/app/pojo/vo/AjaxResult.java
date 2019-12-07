@@ -1,6 +1,6 @@
 package com.github.app.pojo.vo;
 
-import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,12 +61,12 @@ public class AjaxResult<T> {
         if (exception instanceof ViewException) {
             result.setErrNo(FAILURE);
             result.setMessage(exception.getMessage());
-            result.setException(ExceptionUtils.getFullStackTrace(exception));
+            result.setException(ExceptionUtils.getStackTrace(exception));
             logger.warn(exception.getMessage(), exception);
         } else {
             result.setErrNo(ERROR);
             result.setMessage(exception.getMessage());
-            result.setException(ExceptionUtils.getFullStackTrace(exception));
+            result.setException(ExceptionUtils.getStackTrace(exception));
             logger.error(exception.getMessage(), exception);
         }
         return result;

@@ -41,9 +41,11 @@
         <cglib.version>2.2.2</cglib.version>
         <commons-fileupload.version>1.4</commons-fileupload.version>
         <commons-lang.version>2.6</commons-lang.version>
+        <commons-lang3.version>3.9</commons-lang3.version>
         <!--<aspectj.version>1.9.2</aspectj.version>-->
         <!--<cglib.version>3.2.12</cglib.version>-->
         <jackson.version>2.9.5</jackson.version>
+        <junit.version>4.12</junit.version>
     </properties>
 
     <dependencies>
@@ -250,12 +252,32 @@
         </dependency>
 
         <!-- commons-lang -->
+        <!--<dependency>-->
+            <!--<groupId>commons-lang</groupId>-->
+            <!--<artifactId>commons-lang</artifactId>-->
+            <!--<version>${commons-lang.version}</version>-->
+        <!--</dependency>-->
+        <!-- commons-lang3 -->
         <dependency>
-            <groupId>commons-lang</groupId>
-            <artifactId>commons-lang</artifactId>
-            <version>${commons-lang.version}</version>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>${commons-lang3.version}</version>
         </dependency>
 
+        <!--poi-->
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>4.0.1</version>
+        </dependency>
+
+        <!-- juint -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
 
         <!-- Swagger API -->
         <dependency>

@@ -276,6 +276,50 @@ public class JdbcHelper {
         return p;
     }
 
+    public <T> Page<T> queryPageMoreResult(String resultSql, String innerSql, Page page,
+                                           Map<String, ?> param, Class<T> clazz) {
+        return this.queryPageMoreResult(resultSql, innerSql, page.getCurrentPage(), page.getPageSize(),
+                new MyMapSqlParameterSource(param), BeanPropertyRowMapper.newInstance(clazz));
+    }
+
+    public <T> Page<T> queryPageMoreResult(String resultSql, String innerSql, int currentPage, int pageSize,
+                                           Map<String, ?> param, Class<T> clazz) {
+        return this.queryPageMoreResult(resultSql, innerSql, currentPage, pageSize, new MyMapSqlParameterSource(param),
+                BeanPropertyRowMapper.newInstance(clazz));
+    }
+
+    public <T> Page<T> queryPageMoreResult(String resultSql, String innerSql, Page page,
+                                           Object param, Class<T> clazz) {
+        return this.queryPageMoreResult(resultSql, innerSql, page.getCurrentPage(), page.getPageSize(),
+                new MyBeanPropertySqlParameterSource(param), BeanPropertyRowMapper.newInstance(clazz));
+    }
+
+    public <T> Page<T> queryPageMoreResult(String resultSql, String innerSql, int currentPage, int pageSize,
+                                           Object param, Class<T> clazz) {
+        return this.queryPageMoreResult(resultSql, innerSql, currentPage, pageSize,
+                new MyBeanPropertySqlParameterSource(param), BeanPropertyRowMapper.newInstance(clazz));
+    }
+
+    private <T> Page<T> queryPageMoreResult(String resultSql, String innerSql, int currentPage, int pageSize,
+                                            SqlParameterSource paramSource, RowMapper<T> rowMapper) {
+        // 获取记录总数
+        int totalCount = this.getNamedParameterJdbcTemplate()
+                .queryForObject(sqlHelper.getCountSql(innerSql), paramSource, Integer.class);
+
+        // 创建分页对象
+        Page<T> p = new Page<T>(totalCount, pageSize, currentPage);
+        // 当没有记录数时
+        if (p.getTotalPage() == 0) {
+            return p;
+        }
+        // 获取当前页数据
+        List<T> data = this.getNamedParameterJdbcTemplate()
+                .query(sqlHelper.getPagedWithResultSql(resultSql, innerSql, p.getCurrentPage(), p.getPageSize()),
+                        paramSource, rowMapper);
+        p.setData(data);
+        return p;
+    }
+
     public Page<Map<String, Object>> queryPageMap(String sql, int currentPage, int pageSize) {
         return this.queryPageMap(sql, currentPage, pageSize, new HashMap<String, Object>());
     }
