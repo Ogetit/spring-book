@@ -8,6 +8,7 @@ import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -85,6 +86,10 @@ public class ExcelRender<T> implements Serializable {
 
     private List<Field> fields;
 
+    private List<String> errorMsgs;
+
+    private boolean saveMutiDataError = false;
+
     public int getDataStartIndex() {
         return dataStartIndex;
     }
@@ -132,6 +137,18 @@ public class ExcelRender<T> implements Serializable {
         this.uneditableColumns = uneditableColumns;
     }
 
+    public List<String> getErrorMsgs() {
+        return errorMsgs;
+    }
+
+    public void setErrorMsgs(List<String> errorMsgs) {
+        this.errorMsgs = errorMsgs;
+    }
+
+    public void setSaveMutiDataError(boolean saveMutiDataError) {
+        this.saveMutiDataError = saveMutiDataError;
+    }
+
     /**
      * 继承实现的时候自动取泛型，不用写构造函数，调用父类构造函数，直接默认调用构造函数
      */
@@ -143,6 +160,10 @@ public class ExcelRender<T> implements Serializable {
         this.clazz = clazz;
     }
 
+    /**
+     * 初始化一些基本属性
+     * @param workbook
+     */
     private void initBaseFields(Workbook workbook) {
         /* *********普通字体样式********* */
         this.font = workbook.createFont();
@@ -200,31 +221,11 @@ public class ExcelRender<T> implements Serializable {
             // 得到数据的行数
             int rows = sheet.getLastRowNum();
             // 有数据时才处理
-            if (rows > 0) {
+            if (rows >= this.dataStartIndex) {
+                // 清空错误信息
+                this.emptyErrorMsgs();
                 // 得到类的所有field
-                Field[] allFields = clazz.getDeclaredFields();
-                if (null != clazz.getSuperclass()) {
-                    allFields = ArrayUtils.addAll(allFields, clazz.getSuperclass().getDeclaredFields());
-                }
-                // 定义一个map用于存放列的序号和field
-                Map<Integer, Field> fieldsMap = new HashMap<Integer, Field>();
-                for (int i = 0, index = 0; i < allFields.length; i++) {
-                    Field field = allFields[i];
-                    // 将有注解的field存放到map中
-                    if (field.isAnnotationPresent(Excel.class)) {
-                        // 设置类的私有字段属性可访问
-                        field.setAccessible(true);
-                        Excel attr = field.getAnnotation(Excel.class);
-                        // 根据指定的顺序获得列号
-                        if (StringUtils.isNotBlank(attr.column())) {
-                            int col = getExcelCol(attr.column());
-                            fieldsMap.put(col, field);
-                        } else {
-                            fieldsMap.put(index, field);
-                        }
-                        index++;
-                    }
-                }
+                Map<Integer, Field> fieldsMap = getColIndexFieldMap();
                 // 从第 this.dataStartIndex+1 行开始取数据,默认第一行是表头
                 for (int i = this.dataStartIndex, len = rows; i <= len; i++) {
                     // 得到一行中的所有单元格对象.
@@ -239,52 +240,27 @@ public class ExcelRender<T> implements Serializable {
                         Cell cell = cells.next();
 
                         // 如果不存在实例则新建
-                        entity = (entity == null ? clazz.newInstance() : entity);
+                        entity = (entity == null ? this.clazz.newInstance() : entity);
                         // 从map中得到对应列的field
                         Field field = fieldsMap.get(cell.getColumnIndex());
                         if (field == null) {
                             continue;
                         }
-                        // 取得类型,并根据对象类型设置值.
-                        Class<?> fieldType = field.getType();
-                        if (fieldType == null) {
-                            continue;
-                        }
-
                         Excel attr = field.getAnnotation(Excel.class);
-                        String c = getCellValue(cell, attr.readShowValue());
+                        String value = getCellValue(cell, attr.readShowValue());
 
-                        if (StringUtils.isBlank(c)) {
-                            continue;
-                        }
-                        if (c.indexOf("合计：") != -1) {
-                            continue;
-                        }
                         try {
-                            if (String.class == fieldType) {
-                                field.set(entity, String.valueOf(c));
-                            } else if (BigDecimal.class == fieldType) {
-                                c = c.indexOf("%") != -1 ? c.replace("%", "") : c;
-                                field.set(entity, BigDecimal.valueOf(Double.valueOf(c)));
-                            } else if (Date.class == fieldType) {
-                                field.set(entity, DateUtils.parseDate(c, new String[] {"yyyy-MM-dd", "yyyy/MM/dd"}));
-                            } else if ((Integer.TYPE == fieldType) || (Integer.class == fieldType)) {
-                                field.set(entity, Integer.parseInt(c));
-                            } else if ((Long.TYPE == fieldType) || (Long.class == fieldType)) {
-                                field.set(entity, Long.valueOf(c));
-                            } else if ((Float.TYPE == fieldType) || (Float.class == fieldType)) {
-                                field.set(entity, Float.valueOf(c));
-                            } else if ((Short.TYPE == fieldType) || (Short.class == fieldType)) {
-                                field.set(entity, Short.valueOf(c));
-                            } else if ((Double.TYPE == fieldType) || (Double.class == fieldType)) {
-                                field.set(entity, Double.valueOf(c));
-                            } else if (Character.TYPE == fieldType) {
-                                if ((c != null) && (c.length() > 0)) {
-                                    field.set(entity, Character.valueOf(c.charAt(0)));
-                                }
-                            }
+                            fillValueEntity(entity, field, value);
                         } catch (Exception e) {
-                            throw new IllegalArgumentException("第【" + (i + 1) + "】行，第【" + cell.getColumnIndex() + "】列，数据转化异常！");
+                            String columnIndexStr = getExcelColIndexStr(cell.getColumnIndex());
+                            String msg = "第【" + (i + 1) + "】行，第【" + columnIndexStr + "】列，数据转化异常！";
+                            // 是否保存多个数据异常信息
+                            if (this.saveMutiDataError) {
+                                this.errorMsgs.add(msg);
+                            } else {
+                                // 即时抛出异常信息
+                                throw new IllegalArgumentException(msg, e);
+                            }
                         }
                     }
                     if (entity != null) {
@@ -298,6 +274,82 @@ public class ExcelRender<T> implements Serializable {
             throw new IllegalArgumentException("导入异常：" + e.getMessage(), e);
         }
         return list;
+    }
+
+    private Map<Integer, Field> getColIndexFieldMap() {
+        Field[] allFields = clazz.getDeclaredFields();
+        if (null != clazz.getSuperclass()) {
+            allFields = ArrayUtils.addAll(allFields, clazz.getSuperclass().getDeclaredFields());
+        }
+        // 定义一个map用于存放列的序号和field
+        Map<Integer, Field> fieldsMap = new HashMap<Integer, Field>();
+        for (int i = 0, index = 0; i < allFields.length; i++) {
+            Field field = allFields[i];
+            // 将有注解的field存放到map中
+            if (field.isAnnotationPresent(Excel.class)) {
+                // 设置类的私有字段属性可访问
+                field.setAccessible(true);
+                Excel attr = field.getAnnotation(Excel.class);
+                // 根据指定的顺序获得列号
+                if (StringUtils.isNotBlank(attr.column())) {
+                    int col = getExcelColIndex(attr.column());
+                    fieldsMap.put(col, field);
+                } else {
+                    fieldsMap.put(index, field);
+                }
+                index++;
+            }
+        }
+        return fieldsMap;
+    }
+
+    /**
+     * 清空错误信息
+     */
+    private void emptyErrorMsgs() {
+        if (null == this.errorMsgs) {
+            this.errorMsgs = new ArrayList<String>();
+        } else {
+            this.errorMsgs.clear();
+        }
+    }
+
+    /**
+     * 填充值到实体里
+     * @param entity
+     * @param field
+     * @param value
+     * @throws IllegalAccessException
+     * @throws ParseException
+     */
+    private void fillValueEntity(T entity, Field field, String value) throws IllegalAccessException, ParseException {
+        // 取得类型,并根据对象类型设置值.
+        Class<?> fieldType = field.getType();
+        if (StringUtils.isBlank(value) || value.indexOf("合计：") != -1) {
+            return;
+        }
+        if (String.class == fieldType) {
+            field.set(entity, String.valueOf(value));
+        } else if (BigDecimal.class == fieldType) {
+            value = value.indexOf("%") != -1 ? value.replace("%", "") : value;
+            field.set(entity, BigDecimal.valueOf(Double.valueOf(value)));
+        } else if (Date.class == fieldType) {
+            field.set(entity, DateUtils.parseDate(value, new String[] {"yyyy-MM-dd", "yyyy/MM/dd"}));
+        } else if ((Integer.TYPE == fieldType) || (Integer.class == fieldType)) {
+            field.set(entity, Integer.parseInt(value));
+        } else if ((Long.TYPE == fieldType) || (Long.class == fieldType)) {
+            field.set(entity, Long.valueOf(value));
+        } else if ((Float.TYPE == fieldType) || (Float.class == fieldType)) {
+            field.set(entity, Float.valueOf(value));
+        } else if ((Short.TYPE == fieldType) || (Short.class == fieldType)) {
+            field.set(entity, Short.valueOf(value));
+        } else if ((Double.TYPE == fieldType) || (Double.class == fieldType)) {
+            field.set(entity, Double.valueOf(value));
+        } else if (Character.TYPE == fieldType) {
+            if ((value != null) && (value.length() > 0)) {
+                field.set(entity, Character.valueOf(value.charAt(0)));
+            }
+        }
     }
 
     /**
@@ -330,6 +382,11 @@ public class ExcelRender<T> implements Serializable {
                     workbook.setSheetName(index, sheetName);
                 }
 
+                // 通常第一页会表头上部会定义一些额外信息，该方法可以在子类覆写
+                if (index == 0) {
+                    this.extraDataInfo2Sheet(sheet);
+                }
+
                 // 表头填充
                 this.tableTitle2Sheet(sheet);
 
@@ -339,7 +396,7 @@ public class ExcelRender<T> implements Serializable {
                 this.tableData2Sheet(sheet, list, startNo, endNo);
 
                 // 合计 该 sheet 的列 （设置了合计属性才合计）
-                sumColumn2Sheet(sheet);
+                this.sumColumn2Sheet(sheet);
             }
 
             // 添加其他的东西到 sheet
@@ -353,6 +410,12 @@ public class ExcelRender<T> implements Serializable {
             throw new IllegalArgumentException("导出excel异常!", e);
         }
     }
+
+    /**
+     * 在表格信息前（通常上部）加些额外信息，各业务子类根据自身需求重写
+     * @param sheet
+     */
+    public void extraDataInfo2Sheet(Sheet sheet) {}
 
     /**
      * 添加其他的东西到 工作簿
@@ -381,7 +444,7 @@ public class ExcelRender<T> implements Serializable {
      * @param sheet
      */
     private void sumColumn2Sheet(Sheet sheet) {
-    /* *************创建合计列*************** */
+        /* *************创建合计列*************** */
         Row lastRow = sheet.createRow((short) (sheet.getLastRowNum() + 1));
         for (int i = 0; i < fields.size(); i++) {
             Field field = fields.get(i);
@@ -390,7 +453,7 @@ public class ExcelRender<T> implements Serializable {
                 int col = i;
                 // 根据指定的顺序获得列号
                 if (StringUtils.isNotBlank(attr.column())) {
-                    col = getExcelCol(attr.column());
+                    col = getExcelColIndex(attr.column());
                 }
                 BigDecimal totalNumber = BigDecimal.ZERO;
                 for (int j = 1, len = (sheet.getLastRowNum() - 1); j < len; j++) {
@@ -441,7 +504,7 @@ public class ExcelRender<T> implements Serializable {
                 int col = j;
                 // 根据指定的顺序获得列号
                 if (StringUtils.isNotBlank(attr.column())) {
-                    col = getExcelCol(attr.column());
+                    col = getExcelColIndex(attr.column());
                 }
                 // 根据 ExcelVOAttribute 中设置情况决定是否导出,有些情况需要保持为空,希望用户填写这一列.
                 if (attr.isExport()) {
@@ -491,7 +554,7 @@ public class ExcelRender<T> implements Serializable {
             int col = i;
             // 根据指定的顺序获得列号
             if (StringUtils.isNotBlank(attr.column())) {
-                col = getExcelCol(attr.column());
+                col = getExcelColIndex(attr.column());
             }
             // 创建列
             cell = row.createCell(col);
@@ -556,7 +619,7 @@ public class ExcelRender<T> implements Serializable {
      *
      * @param col
      */
-    public static int getExcelCol(String col) {
+    public static int getExcelColIndex(String col) {
         col = col.toUpperCase();
         // 从 -1 开始计算,字母重 1 开始运算。这种总数下来算数正好相同。
         int count = -1;
@@ -565,6 +628,21 @@ public class ExcelRender<T> implements Serializable {
             count += (cs[i] - 64) * Math.pow(26, cs.length - 1 - i);
         }
         return count;
+    }
+
+    /**
+     * 将 EXCEL 中 0,1,2,3 列映射成 A,B,C,D,E
+     *
+     * @param index
+     */
+    public static String getExcelColIndexStr(int index) {
+        String result = "";
+        int count = index + 1;
+        do {
+            result = ((char) ((count % 26) + 64)) + result;
+            count = count / 26;
+        } while (count > 0);
+        return result.toUpperCase();
     }
 
     /**
@@ -819,6 +897,12 @@ public class ExcelRender<T> implements Serializable {
         sheet.addValidationData(data_validation);
     }
 
+    /**
+     * 获得加锁单元格样式
+     * @param workbook
+     * @param isHc
+     * @return
+     */
     public static CellStyle getLockStyle(Workbook workbook, Object... isHc) {
         //  数字 靠右 锁定
         CellStyle lockStyle = workbook.createCellStyle();
@@ -845,6 +929,12 @@ public class ExcelRender<T> implements Serializable {
         return lockStyle;
     }
 
+    /**
+     * 获得编辑单元格样式
+     * @param workbook
+     * @param isHc
+     * @return
+     */
     public static CellStyle getEditStyle(Workbook workbook, Object... isHc) {
         //  数字 靠右 可编辑
         CellStyle editStyle = workbook.createCellStyle();
