@@ -24,16 +24,20 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.time.DateUtils;
+import org.apache.poi.hssf.usermodel.HSSFRichTextString;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.BorderStyle;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.ClientAnchor;
+import org.apache.poi.ss.usermodel.Comment;
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.DataValidation;
 import org.apache.poi.ss.usermodel.DataValidationConstraint;
 import org.apache.poi.ss.usermodel.DataValidationHelper;
 import org.apache.poi.ss.usermodel.DateUtil;
+import org.apache.poi.ss.usermodel.Drawing;
 import org.apache.poi.ss.usermodel.FillPatternType;
 import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.FormulaEvaluator;
@@ -43,6 +47,7 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.VerticalAlignment;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.util.CellRangeAddressList;
+import org.apache.poi.xssf.usermodel.XSSFRichTextString;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.util.CollectionUtils;
 
@@ -65,6 +70,8 @@ public class ExcelRender<T> implements Serializable {
     private Map<Integer, Integer> columnWidthMap;
 
     private Map<Integer, String> titleMap;
+
+    private Map<Integer, Integer> lengthLimitMap;
 
     private Set<Integer> uneditableColumns;
 
@@ -162,6 +169,7 @@ public class ExcelRender<T> implements Serializable {
 
     /**
      * 初始化一些基本属性
+     *
      * @param workbook
      */
     private void initBaseFields(Workbook workbook) {
@@ -196,6 +204,11 @@ public class ExcelRender<T> implements Serializable {
             if (field.isAnnotationPresent(Excel.class)) {
                 this.fields.add(field);
             }
+        }
+        if (null == this.lengthLimitMap) {
+            this.lengthLimitMap = new HashMap<Integer, Integer>();
+        } else {
+            this.lengthLimitMap.clear();
         }
     }
 
@@ -250,17 +263,15 @@ public class ExcelRender<T> implements Serializable {
                         String value = getCellValue(cell, attr.readShowValue());
 
                         try {
-                            fillValueEntity(entity, field, value);
+                            fillValueEntity(entity, field, value, attr);
+                        } catch (IllegalArgumentException e) {
+                            String columnIndexStr = getExcelColIndexStr(cell.getColumnIndex());
+                            String rowIndexStr = "" + (i + 1);
+                            errorExceptionLoging(rowIndexStr, columnIndexStr, e);
                         } catch (Exception e) {
                             String columnIndexStr = getExcelColIndexStr(cell.getColumnIndex());
-                            String msg = "第【" + (i + 1) + "】行，第【" + columnIndexStr + "】列，数据转化异常！";
-                            // 是否保存多个数据异常信息
-                            if (this.saveMutiDataError) {
-                                this.errorMsgs.add(msg);
-                            } else {
-                                // 即时抛出异常信息
-                                throw new IllegalArgumentException(msg, e);
-                            }
+                            String rowIndexStr = "" + (i + 1);
+                            errorExceptionLoging(rowIndexStr, columnIndexStr, e);
                         }
                     }
                     if (entity != null) {
@@ -274,6 +285,26 @@ public class ExcelRender<T> implements Serializable {
             throw new IllegalArgumentException("导入异常：" + e.getMessage(), e);
         }
         return list;
+    }
+
+    /**
+     * 错误日志处理
+     *
+     * @param rowIndexStr
+     * @param columnIndexStr
+     * @param e
+     */
+    public void errorExceptionLoging(String rowIndexStr, String columnIndexStr, Exception e) {
+        String eMsg = e instanceof IllegalArgumentException ? e.getMessage() : "";
+        String msg = "第【" + rowIndexStr + "】行，第【" + columnIndexStr + "】列，数据转化异常【" + eMsg + "】！";
+        // 是否保存多个数据异常信息
+        if (this.saveMutiDataError) {
+            this.errorMsgs.add(msg);
+        } else {
+            // 即时抛出异常信息
+            e.printStackTrace();
+            throw new IllegalArgumentException(msg, e);
+        }
     }
 
     private Map<Integer, Field> getColIndexFieldMap() {
@@ -316,19 +347,25 @@ public class ExcelRender<T> implements Serializable {
 
     /**
      * 填充值到实体里
+     *
      * @param entity
      * @param field
      * @param value
+     *
      * @throws IllegalAccessException
      * @throws ParseException
      */
-    private void fillValueEntity(T entity, Field field, String value) throws IllegalAccessException, ParseException {
+    private void fillValueEntity(T entity, Field field, String value, Excel attr)
+            throws IllegalAccessException, ParseException {
         // 取得类型,并根据对象类型设置值.
         Class<?> fieldType = field.getType();
         if (StringUtils.isBlank(value) || value.indexOf("合计：") != -1) {
             return;
         }
         if (String.class == fieldType) {
+            if (attr.byteLength() > 0 && value.getBytes().length > attr.byteLength()) {
+                throw new IllegalArgumentException("[" + attr.name() + "]的长度不满足：" + attr.prompt());
+            }
             field.set(entity, String.valueOf(value));
         } else if (BigDecimal.class == fieldType) {
             value = value.indexOf("%") != -1 ? value.replace("%", "") : value;
@@ -384,7 +421,7 @@ public class ExcelRender<T> implements Serializable {
 
                 // 通常第一页会表头上部会定义一些额外信息，该方法可以在子类覆写
                 if (index == 0) {
-                    this.extraDataInfo2Sheet(sheet);
+                    this.beforExtraDataInfo2Sheet(sheet);
                 }
 
                 // 表头填充
@@ -393,7 +430,7 @@ public class ExcelRender<T> implements Serializable {
                 // 表格数据填充 （数据量超标要分多个 sheet 放入）
                 int startNo = index * sheetSize;
                 int endNo = Math.min(startNo + sheetSize, listSize);
-                this.tableData2Sheet(sheet, list, startNo, endNo);
+                this.tableData2Sheet(workbook, sheet, list, startNo, endNo);
 
                 // 合计 该 sheet 的列 （设置了合计属性才合计）
                 this.sumColumn2Sheet(sheet);
@@ -407,18 +444,23 @@ public class ExcelRender<T> implements Serializable {
             output.close();
             return Boolean.TRUE;
         } catch (Exception e) {
+            e.printStackTrace();
             throw new IllegalArgumentException("导出excel异常!", e);
         }
     }
 
     /**
      * 在表格信息前（通常上部）加些额外信息，各业务子类根据自身需求重写
+     *
      * @param sheet
      */
-    public void extraDataInfo2Sheet(Sheet sheet) {}
+    public void beforExtraDataInfo2Sheet(Sheet sheet) {
+
+    }
 
     /**
      * 添加其他的东西到 工作簿
+     *
      * @param workbook
      * @param dataSheetNo
      */
@@ -437,10 +479,20 @@ public class ExcelRender<T> implements Serializable {
             }
             workbook.setSheetHidden(selectIndex, true);
         }
+        // 添加单元格字数限制
+        if (!CollectionUtils.isEmpty(this.lengthLimitMap)) {
+            int startRow = this.dataStartIndex;
+            int endRow = this.dataStartIndex + 1000;
+            for (int index = 0; index <= dataSheetNo; index++) {
+                Sheet sheet = workbook.getSheetAt(index);
+                addStrLengthLimit(sheet, startRow, endRow, this.lengthLimitMap);
+            }
+        }
     }
 
     /**
      * 合计列
+     *
      * @param sheet
      */
     private void sumColumn2Sheet(Sheet sheet) {
@@ -474,13 +526,15 @@ public class ExcelRender<T> implements Serializable {
 
     /**
      * 数据填充
+     *
      * @param sheet
      * @param dataList
      * @param startNo
      * @param endNo
+     *
      * @throws IllegalAccessException
      */
-    private void tableData2Sheet(Sheet sheet, List<T> dataList, int startNo, int endNo)
+    private void tableData2Sheet(Workbook workbook, Sheet sheet, List<T> dataList, int startNo, int endNo)
             throws IllegalAccessException {
         Row row;
         Cell cell;
@@ -519,6 +573,16 @@ public class ExcelRender<T> implements Serializable {
                     } else {
                         cell.setCellStyle(this.cellStyle);
                     }
+
+                    // 格式化定义检查
+                    if (StringUtils.isNotBlank(attr.dataFormat())) {
+                        CellStyle style = workbook.createCellStyle();
+                        // clone 此前定义的样式
+                        style.cloneStyleFrom(cell.getCellStyle());
+                        style.setDataFormat(workbook.createDataFormat().getFormat(attr.dataFormat()));
+                        cell.setCellStyle(style);
+                    }
+
                     // 如果数据存在就填入,不存在填入空格
                     Class<?> classType = (Class<?>) field.getType();
                     String value = null;
@@ -526,6 +590,7 @@ public class ExcelRender<T> implements Serializable {
                         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
                         value = sdf.format(field.get(vo));
                     }
+
                     if (field.get(vo) == null) {
                         cell.setCellValue("");
                     } else if (value == null) {
@@ -540,6 +605,7 @@ public class ExcelRender<T> implements Serializable {
 
     /**
      * 表头填充
+     *
      * @param sheet
      */
     private void tableTitle2Sheet(Sheet sheet) {
@@ -547,7 +613,7 @@ public class ExcelRender<T> implements Serializable {
         Cell cell;
         // 产生单元格 产生一行
         row = sheet.createRow(this.dataStartIndex - 1);
-                /* *************创建列头名称*************** */
+        /* *************创建列头名称*************** */
         for (int i = 0; i < this.fields.size(); i++) {
             Field field = this.fields.get(i);
             Excel attr = field.getAnnotation(Excel.class);
@@ -588,7 +654,12 @@ public class ExcelRender<T> implements Serializable {
 
             // 如果设置了提示信息则鼠标放上去提示.
             if (StringUtils.isNotBlank(attr.prompt())) {
-                setPrompt(sheet, "", attr.prompt(), 1, 100, col, col);
+                // setPrompt(sheet, "", attr.prompt(), 1, 100, col, col);
+                this.setComment(sheet, cell, "温馨提示", attr.prompt());
+            }
+
+            if (null != this.lengthLimitMap && attr.byteLength() > 0) {
+                this.lengthLimitMap.put(col, attr.byteLength());
             }
 
             // 如果设置了 combo 属性则本列只能选择不能输入
@@ -600,8 +671,11 @@ public class ExcelRender<T> implements Serializable {
 
     /**
      * 创建 Workbook
+     *
      * @param input
+     *
      * @return
+     *
      * @throws IOException
      */
     protected Workbook createWorkbook(InputStream input) throws IOException {
@@ -612,6 +686,29 @@ public class ExcelRender<T> implements Serializable {
             book = null != input ? new HSSFWorkbook(input) : new HSSFWorkbook();
         }
         return book;
+    }
+
+    /**
+     * 设置单元格上批注
+     *
+     * @param sheet          要设置的sheet.
+     * @param commentTitle   标题
+     * @param commentContent 内容
+     *
+     * @return 设置好的sheet.
+     */
+    public Sheet setComment(Sheet sheet, Cell cell, String commentTitle, String commentContent) {
+        Drawing drawing = sheet.createDrawingPatriarch();
+        ClientAnchor anchor = drawing.createAnchor(0, 0, 0, 0, 1, 1, 1, 1);
+        Comment comment = drawing.createCellComment(anchor);
+        if (this.xlsxFile) {
+            comment.setString(new XSSFRichTextString(commentContent));
+        } else {
+            comment.setString(new HSSFRichTextString(commentContent));
+        }
+        comment.setAuthor(commentTitle);
+        cell.setCellComment(comment);
+        return sheet;
     }
 
     /**
@@ -670,6 +767,34 @@ public class ExcelRender<T> implements Serializable {
                 setPullDownMax(index, sheet, selectSheet, data, startRow, endRow, entry.getKey(), entry.getKey());
                 index++;
             }
+        }
+    }
+    /**
+     * 添加 字数限制 数据
+     *
+     * @param sheet
+     * @param lengthLimitMap
+     */
+    public static void addStrLengthLimit(Sheet sheet, int startRow, int endRow, Map<Integer, Integer> lengthLimitMap) {
+        if (CollectionUtils.isEmpty(lengthLimitMap)) {
+            return;
+        }
+
+        for (Map.Entry<Integer, Integer> item : lengthLimitMap.entrySet()) {
+            // 构造constraint对象
+            DataValidationHelper helper = sheet.getDataValidationHelper();
+            DataValidationConstraint dvConstraint = helper.createNumericConstraint(
+                    DataValidationConstraint.ValidationType.TEXT_LENGTH,
+                    DataValidationConstraint.OperatorType.BETWEEN,
+                    "1", item.getValue().toString());
+            // 四个参数分别是：起始行、终止行、起始列、终止列
+            CellRangeAddressList regions = new CellRangeAddressList(startRow, endRow, item.getKey(), item.getKey());
+            // 数据有效性对象
+            DataValidation data_validation_view = helper.createValidation(dvConstraint, regions);
+            // data_validation_view.createPromptBox("温性提示", "请保持字数在【" + item.getValue() + "】以内");
+            data_validation_view.createErrorBox("字数过长", "请保持字数在【" + item.getValue() + "】以内");
+            data_validation_view.setShowErrorBox(true);
+            sheet.addValidationData(data_validation_view);
         }
     }
 
@@ -744,8 +869,8 @@ public class ExcelRender<T> implements Serializable {
         String[] arr = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O",
                 "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"};
         // String strFormula = "Sheet2!$A$1:$A$5000" ;
-        // Sheet2第A1到A5000作为下拉列表来源数据
-        String strFormula = sheet.getSheetName() + "!$" + arr[index] + "$1:$" + arr[index] + "$5000";
+        // Sheet2第A,1到A,5000作为下拉列表来源数据
+        String strFormula = selectSheet.getSheetName() + "!$" + arr[index] + "$1:$" + arr[index] + "$5000";
         DataValidationHelper helper = sheet.getDataValidationHelper();
         DataValidationConstraint constraint = helper.createFormulaListConstraint(strFormula);
         DataValidation dataValidation = helper.createValidation(constraint, regions);
@@ -899,8 +1024,10 @@ public class ExcelRender<T> implements Serializable {
 
     /**
      * 获得加锁单元格样式
+     *
      * @param workbook
      * @param isHc
+     *
      * @return
      */
     public static CellStyle getLockStyle(Workbook workbook, Object... isHc) {
@@ -931,8 +1058,10 @@ public class ExcelRender<T> implements Serializable {
 
     /**
      * 获得编辑单元格样式
+     *
      * @param workbook
      * @param isHc
+     *
      * @return
      */
     public static CellStyle getEditStyle(Workbook workbook, Object... isHc) {

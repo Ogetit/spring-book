@@ -19,53 +19,65 @@ public @interface Excel {
      *
      * @return
      */
-    public abstract String name();
+    String name();
 
     /**
      * 列名对应的A,B,C,D...,不指定按照默认顺序排序
      *
      * @return
      */
-    public abstract String column() default "";
+    String column() default "";
 
     /**
      * 提示信息
      *
      * @return
      */
-    public abstract String prompt() default "";
+    String prompt() default "";
 
     /**
      * 设置只能选择不能输入的列内容
      *
      * @return
      */
-    public abstract String[] readonlyCols() default {};
+    String[] readonlyCols() default {};
 
     /**
      * 是否导出数据
      *
      * @return
      */
-    public abstract boolean isExport() default true;
+    boolean isExport() default true;
 
     /**
      * 是否为重要字段（整列标红,着重显示）
      *
      * @return
      */
-    public abstract boolean isMark() default false;
+    boolean isMark() default false;
 
     /**
      * 是否合计当前列
      *
      * @return
      */
-    public abstract boolean isSum() default false;
+    boolean isSum() default false;
     /**
      * 读取值的时候是否只读显示值
      *
      * @return
      */
-    public abstract boolean readShowValue() default false;
+    boolean readShowValue() default false;
+    /**
+     * 字段字节长度限制
+     *
+     * @return
+     */
+    int byteLength() default -1;
+
+    /**
+     * 数据格式
+     * @return
+     */
+    String dataFormat() default "";
 }
