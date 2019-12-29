@@ -24,6 +24,9 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.time.DateUtils;
+import org.apache.poi.common.usermodel.HyperlinkType;
+import org.apache.poi.hpsf.DocumentSummaryInformation;
+import org.apache.poi.hpsf.SummaryInformation;
 import org.apache.poi.hssf.usermodel.HSSFRichTextString;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.BorderStyle;
@@ -32,6 +35,8 @@ import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.ClientAnchor;
 import org.apache.poi.ss.usermodel.Comment;
+import org.apache.poi.ss.usermodel.CreationHelper;
+import org.apache.poi.ss.usermodel.DataFormat;
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.DataValidation;
 import org.apache.poi.ss.usermodel.DataValidationConstraint;
@@ -40,8 +45,13 @@ import org.apache.poi.ss.usermodel.DateUtil;
 import org.apache.poi.ss.usermodel.Drawing;
 import org.apache.poi.ss.usermodel.FillPatternType;
 import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.Footer;
 import org.apache.poi.ss.usermodel.FormulaEvaluator;
+import org.apache.poi.ss.usermodel.Header;
 import org.apache.poi.ss.usermodel.HorizontalAlignment;
+import org.apache.poi.ss.usermodel.Hyperlink;
+import org.apache.poi.ss.usermodel.IndexedColors;
+import org.apache.poi.ss.usermodel.PrintSetup;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.VerticalAlignment;
@@ -75,6 +85,8 @@ public class ExcelRender<T> implements Serializable {
 
     private Set<Integer> uneditableColumns;
 
+    private Set<String> markedIndexMap;
+
     private boolean xlsxFile = true;
 
     private int dataStartIndex = 1;
@@ -91,11 +103,27 @@ public class ExcelRender<T> implements Serializable {
 
     private CellStyle markCellStyle;
 
+    private CellStyle numberCellStyle;
+
+    private CellStyle markNumberCellStyle;
+
+    private CellStyle numberPercentCellStyle;
+
+    private CellStyle markNumberPercentCellStyle;
+
+    private Map<String, CellStyle> formatCellStyleMap;
+
     private List<Field> fields;
 
-    private List<String> errorMsgs;
+    private List<ExcelErrorDomain> errorMsgs;
 
     private boolean saveMutiDataError = false;
+
+    private int pullDownColIndex = 0;
+
+    private String currSheetName;
+
+    private boolean displayGridlines = true;
 
     public int getDataStartIndex() {
         return dataStartIndex;
@@ -144,16 +172,28 @@ public class ExcelRender<T> implements Serializable {
         this.uneditableColumns = uneditableColumns;
     }
 
-    public List<String> getErrorMsgs() {
+    public Set<String> getMarkedIndexMap() {
+        return markedIndexMap;
+    }
+
+    public void setMarkedIndexMap(Set<String> markedIndexMap) {
+        this.markedIndexMap = markedIndexMap;
+    }
+
+    public List<ExcelErrorDomain> getErrorMsgs() {
         return errorMsgs;
     }
 
-    public void setErrorMsgs(List<String> errorMsgs) {
+    public void setErrorMsgs(List<ExcelErrorDomain> errorMsgs) {
         this.errorMsgs = errorMsgs;
     }
 
     public void setSaveMutiDataError(boolean saveMutiDataError) {
         this.saveMutiDataError = saveMutiDataError;
+    }
+
+    public String getCurrSheetName() {
+        return currSheetName;
     }
 
     /**
@@ -167,6 +207,26 @@ public class ExcelRender<T> implements Serializable {
         this.clazz = clazz;
     }
 
+    public CellStyle getTitleCellStyle() {
+        return titleCellStyle;
+    }
+
+    public CellStyle getTitleMarkCellStyle() {
+        return titleMarkCellStyle;
+    }
+
+    public CellStyle getDefaultCellStyle() {
+        return cellStyle;
+    }
+
+    public void setDisplayGridlines(boolean displayGridlines) {
+        this.displayGridlines = displayGridlines;
+    }
+
+    public boolean isDisplayGridlines() {
+        return displayGridlines;
+    }
+
     /**
      * 初始化一些基本属性
      *
@@ -177,8 +237,9 @@ public class ExcelRender<T> implements Serializable {
         this.font = workbook.createFont();
         this.font.setFontName("Arail narrow");
         this.font.setColor(Font.COLOR_NORMAL);
-                /* *********标红字体样式********* */
+        /* *********标红字体样式********* */
         this.markFont = workbook.createFont();
+        this.markFont.setFontHeightInPoints((short) 10);
         this.markFont.setFontName("Arail narrow");
         this.markFont.setColor(Font.COLOR_RED);
 
@@ -187,6 +248,7 @@ public class ExcelRender<T> implements Serializable {
         this.titleCellStyle = getLockStyle(workbook);
         this.titleMarkCellStyle = getLockStyle(workbook);
         this.titleMarkCellStyle.setFont(this.markFont);
+        this.titleMarkCellStyle.setFillForegroundColor(IndexedColors.YELLOW.getIndex());
 
         /* *************创建内容列*************** */
         this.cellStyle = getEditStyle(workbook);
@@ -210,6 +272,29 @@ public class ExcelRender<T> implements Serializable {
         } else {
             this.lengthLimitMap.clear();
         }
+        pullDownColIndex = 0;
+
+        numberCellStyle = workbook.createCellStyle();
+        numberCellStyle.cloneStyleFrom(cellStyle);
+        short dataFormatIndex = getDataFormatIndex(workbook, true, 2, true, false, null);
+        numberCellStyle.setDataFormat(dataFormatIndex);
+        numberCellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+
+        markNumberCellStyle = workbook.createCellStyle();
+        markNumberCellStyle.cloneStyleFrom(numberCellStyle);
+        markNumberCellStyle.setFont(markFont);
+
+        numberPercentCellStyle = workbook.createCellStyle();
+        numberPercentCellStyle.cloneStyleFrom(cellStyle);
+        short dataPercentCellFormatIndex = getDataFormatIndex(workbook, true, 2, true, true, null);
+        numberPercentCellStyle.setDataFormat(dataPercentCellFormatIndex);
+        numberPercentCellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+
+        markNumberPercentCellStyle = workbook.createCellStyle();
+        markNumberPercentCellStyle.cloneStyleFrom(numberPercentCellStyle);
+        markNumberPercentCellStyle.setFont(markFont);
+
+        formatCellStyleMap = new HashMap<String, CellStyle>();
     }
 
     /**
@@ -231,6 +316,8 @@ public class ExcelRender<T> implements Serializable {
             if (sheet == null) {
                 sheet = book.getSheetAt(0);
             }
+            currSheetName = sheet.getSheetName();
+            this.extraDataInfoFromSheet(sheet);
             // 得到数据的行数
             int rows = sheet.getLastRowNum();
             // 有数据时才处理
@@ -260,6 +347,11 @@ public class ExcelRender<T> implements Serializable {
                             continue;
                         }
                         Excel attr = field.getAnnotation(Excel.class);
+                        // 如果忽略数据的读取，则跳过
+                        if (attr.ignoreDataFromExcel()) {
+                            continue;
+                        }
+
                         String value = getCellValue(cell, attr.readShowValue());
 
                         try {
@@ -288,6 +380,15 @@ public class ExcelRender<T> implements Serializable {
     }
 
     /**
+     * 读取在表格信息前（通常上部）额外信息，各业务子类根据自身需求读取
+     *
+     * @param sheet
+     */
+    public void extraDataInfoFromSheet(Sheet sheet) {
+
+    }
+
+    /**
      * 错误日志处理
      *
      * @param rowIndexStr
@@ -296,13 +397,14 @@ public class ExcelRender<T> implements Serializable {
      */
     public void errorExceptionLoging(String rowIndexStr, String columnIndexStr, Exception e) {
         String eMsg = e instanceof IllegalArgumentException ? e.getMessage() : "";
-        String msg = "第【" + rowIndexStr + "】行，第【" + columnIndexStr + "】列，数据转化异常【" + eMsg + "】！";
+        ExcelErrorDomain error = new ExcelErrorDomain(currSheetName, rowIndexStr, columnIndexStr, eMsg);
         // 是否保存多个数据异常信息
         if (this.saveMutiDataError) {
-            this.errorMsgs.add(msg);
+            this.errorMsgs.add(error);
         } else {
             // 即时抛出异常信息
             e.printStackTrace();
+            String msg = "第【" + rowIndexStr + "】行，第【" + columnIndexStr + "】列，数据转化异常【" + eMsg + "】！";
             throw new IllegalArgumentException(msg, e);
         }
     }
@@ -339,7 +441,7 @@ public class ExcelRender<T> implements Serializable {
      */
     private void emptyErrorMsgs() {
         if (null == this.errorMsgs) {
-            this.errorMsgs = new ArrayList<String>();
+            this.errorMsgs = new ArrayList<ExcelErrorDomain>();
         } else {
             this.errorMsgs.clear();
         }
@@ -430,14 +532,19 @@ public class ExcelRender<T> implements Serializable {
                 // 表格数据填充 （数据量超标要分多个 sheet 放入）
                 int startNo = index * sheetSize;
                 int endNo = Math.min(startNo + sheetSize, listSize);
-                this.tableData2Sheet(workbook, sheet, list, startNo, endNo);
+                this.tableData2Sheet(sheet, list, startNo, endNo);
 
                 // 合计 该 sheet 的列 （设置了合计属性才合计）
                 this.sumColumn2Sheet(sheet);
+
+                // 网格线隐藏与否
+                sheet.setDisplayGridlines(this.displayGridlines);
             }
 
             // 添加其他的东西到 sheet
-            addOthers2Workbook(workbook, sheetNo);
+            this.addOthers2Workbook(workbook, sheetNo);
+            // 其他额外的操作
+            this.afterExtraInfo2Workbook(workbook);
 
             output.flush();
             workbook.write(output);
@@ -455,7 +562,14 @@ public class ExcelRender<T> implements Serializable {
      * @param sheet
      */
     public void beforExtraDataInfo2Sheet(Sheet sheet) {
+    }
 
+    /**
+     * 额外的信息添加到 Workbook
+     *
+     * @param workbook
+     */
+    public void afterExtraInfo2Workbook(Workbook workbook) {
     }
 
     /**
@@ -468,15 +582,14 @@ public class ExcelRender<T> implements Serializable {
         // 添加下拉框 数据域
         if (!CollectionUtils.isEmpty(this.pullDataMap)) {
             // 添加 下拉框
-            int selectIndex = (int) (dataSheetNo + 1);
-            Sheet selectSheet = workbook.createSheet();
-            workbook.setSheetName(selectIndex, "大于255下拉框值域");
+            Sheet selectSheet = getOrCreateSelectSheet(workbook);
             int startRow = this.dataStartIndex;
             int endRow = this.dataStartIndex + 1000;
             for (int index = 0; index <= dataSheetNo; index++) {
                 Sheet sheet = workbook.getSheetAt(index);
                 addPullDownSelect(sheet, selectSheet, startRow, endRow, this.pullDataMap);
             }
+            int selectIndex = workbook.getSheetIndex(selectSheet.getSheetName());
             workbook.setSheetHidden(selectIndex, true);
         }
         // 添加单元格字数限制
@@ -488,6 +601,65 @@ public class ExcelRender<T> implements Serializable {
                 addStrLengthLimit(sheet, startRow, endRow, this.lengthLimitMap);
             }
         }
+    }
+
+    /**
+     * 添加 下拉框 数据 批量添加到下拉框
+     *
+     * @param sheet
+     * @param pullDataMap
+     */
+    public void addPullDownSelect(Sheet sheet, Sheet selectSheet, int startRow, int endRow, Map<Integer,
+            Set<String>> pullDataMap) {
+        if (CollectionUtils.isEmpty(pullDataMap)) {
+            return;
+        }
+        for (Map.Entry<Integer, Set<String>> entry : pullDataMap.entrySet()) {
+            addPullDownSelect(sheet, selectSheet, startRow, endRow, entry.getKey(), entry.getKey(), entry.getValue());
+        }
+    }
+
+    /**
+     * 添加 下拉框
+     *
+     * @param sheet
+     * @param selectSheet
+     * @param startRow
+     * @param endRow
+     * @param startCol
+     * @param endCol
+     * @param dataSet
+     */
+    public void addPullDownSelect(Sheet sheet, Sheet selectSheet, int startRow, int endRow, int startCol, int endCol,
+                                  Set<String> dataSet) {
+        if (CollectionUtils.isEmpty(dataSet)) {
+            return;
+        }
+        String[] data = new String[dataSet.size()];
+        dataSet.toArray(data);
+
+        if (data.length < 5) {
+            setPullDown(sheet, data, startRow, endRow, startCol, endCol);
+        } else {
+            setPullDownMax(pullDownColIndex, sheet, selectSheet, data, startRow, endRow, startCol, endCol);
+            pullDownColIndex++;
+        }
+    }
+
+    /**
+     * 获取或创建 SelectSheet
+     *
+     * @param workbook
+     *
+     * @return
+     */
+    protected Sheet getOrCreateSelectSheet(Workbook workbook) {
+        String selectSheetName = "大于255下拉框值域";
+        Sheet selectSheet = workbook.getSheet(selectSheetName);
+        if (null == selectSheet) {
+            selectSheet = workbook.createSheet(selectSheetName);
+        }
+        return selectSheet;
     }
 
     /**
@@ -534,14 +706,19 @@ public class ExcelRender<T> implements Serializable {
      *
      * @throws IllegalAccessException
      */
-    private void tableData2Sheet(Workbook workbook, Sheet sheet, List<T> dataList, int startNo, int endNo)
+    private void tableData2Sheet(Sheet sheet, List<T> dataList, int startNo, int endNo)
             throws IllegalAccessException {
         Row row;
         Cell cell;
+        if (CollectionUtils.isEmpty(dataList)) {
+            return;
+        }
+        int dataMaxIndex = dataList.size() - 1;
         // 写入各条记录,每条记录对应 excel 表中的一行
         for (int i = startNo; i < endNo; i++) {
-            row = sheet.createRow(i + this.dataStartIndex - startNo);
-            if (null == dataList) {
+            int rowIndex = i + this.dataStartIndex;
+            row = sheet.createRow(rowIndex - startNo);
+            if (dataMaxIndex < i) {
                 break;
             }
             // 得到导出对象.
@@ -565,42 +742,89 @@ public class ExcelRender<T> implements Serializable {
                     // 创建cell
                     cell = row.createCell(col);
                     cell.setCellType(CellType.STRING);
-                    if (null != uneditableColumns && uneditableColumns.contains(col)) {
-                        setDataLockValidation(sheet, cell);
-                    }
-                    if (attr.isMark()) {
-                        cell.setCellStyle(this.markCellStyle);
-                    } else {
-                        cell.setCellStyle(this.cellStyle);
-                    }
 
-                    // 格式化定义检查
-                    if (StringUtils.isNotBlank(attr.dataFormat())) {
-                        CellStyle style = workbook.createCellStyle();
-                        // clone 此前定义的样式
-                        style.cloneStyleFrom(cell.getCellStyle());
-                        style.setDataFormat(workbook.createDataFormat().getFormat(attr.dataFormat()));
-                        cell.setCellStyle(style);
-                    }
+                    // 单元格值填充
+                    getAndFillValue2Cell(cell, vo, field, attr);
 
-                    // 如果数据存在就填入,不存在填入空格
-                    Class<?> classType = (Class<?>) field.getType();
-                    String value = null;
-                    if (field.get(vo) != null && classType.isAssignableFrom(Date.class)) {
-                        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
-                        value = sdf.format(field.get(vo));
-                    }
-
-                    if (field.get(vo) == null) {
-                        cell.setCellValue("");
-                    } else if (value == null) {
-                        cell.setCellValue(String.valueOf(field.get(vo)));
-                    } else {
-                        cell.setCellValue(value);
-                    }
+                    // 填充导出数据的样式
+                    fillCellStyle(cell, attr, rowIndex, col);
                 }
             }
         }
+    }
+
+    private void fillCellStyle(Cell cell, Excel attr, int rowIndex, int colIndex) {
+        Sheet sheet = cell.getSheet();
+        if (null != uneditableColumns && uneditableColumns.contains(colIndex)) {
+            setDataLockValidation(sheet, cell);
+        }
+        boolean isMarked = attr.isMark()
+                || (null != markedIndexMap && markedIndexMap.contains(rowIndex + "_" + colIndex));
+        if (isMarked) {
+            if (attr.isNumber()) {
+                cell.setCellStyle(this.markNumberCellStyle);
+            } else if (attr.isPercentNumber()) {
+                cell.setCellStyle(this.markNumberPercentCellStyle);
+            } else {
+                cell.setCellStyle(this.markCellStyle);
+            }
+        } else if (attr.isPercentNumber()) {
+            cell.setCellStyle(this.numberPercentCellStyle);
+        } else if (attr.isNumber()) {
+            cell.setCellStyle(this.numberCellStyle);
+        } else {
+            cell.setCellStyle(this.cellStyle);
+        }
+        if (StringUtils.isNotBlank(attr.dateFormat())) {
+            CellStyle style = formatCellStyleMap.get(attr.dateFormat());
+            if (null == style) {
+                style = sheet.getWorkbook().createCellStyle();
+                // clone 此前定义的样式
+                style.cloneStyleFrom(cell.getCellStyle());
+                style.setDataFormat(cell.getSheet().getWorkbook().createDataFormat().getFormat(attr.dateFormat()));
+                formatCellStyleMap.put(attr.dateFormat(), style);
+            }
+            cell.setCellStyle(style);
+        }
+    }
+
+    /**
+     * 获取 对象对应属性的 StrValue
+     *
+     * @param cell
+     * @param vo
+     * @param field
+     *
+     * @return
+     *
+     * @throws IllegalAccessException
+     */
+    private Object getAndFillValue2Cell(Cell cell, T vo, Field field, Excel attr) throws IllegalAccessException {
+        if (null == field) {
+            return null;
+        }
+        Class<?> classType = (Class<?>) field.getType();
+        Object feildValue = ReflectionUtil.invokeGetterMethod(vo, field);
+        if (feildValue == null) {
+            feildValue = field.get(vo);
+        }
+        if (feildValue == null) {
+            // 如果数据存在就填入,不存在填入空格
+            cell.setCellValue("");
+        } else if (classType.isAssignableFrom(Date.class)) {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
+            cell.setCellValue(sdf.format(feildValue));
+        } else if (classType.isAssignableFrom(Double.class)) {
+            cell.setCellValue((Double) feildValue);
+            cell.setCellType(CellType.NUMERIC);
+        } else if (classType.isAssignableFrom(BigDecimal.class)) {
+            cell.setCellValue(((BigDecimal) feildValue).doubleValue());
+            cell.setCellType(CellType.NUMERIC);
+        } else {
+            cell.setCellValue(String.valueOf(feildValue));
+        }
+
+        return feildValue;
     }
 
     /**
@@ -612,7 +836,8 @@ public class ExcelRender<T> implements Serializable {
         Row row;
         Cell cell;
         // 产生单元格 产生一行
-        row = sheet.createRow(this.dataStartIndex - 1);
+        int titleIndex = this.dataStartIndex - 1;
+        row = sheet.createRow(titleIndex);
         /* *************创建列头名称*************** */
         for (int i = 0; i < this.fields.size(); i++) {
             Field field = this.fields.get(i);
@@ -626,7 +851,9 @@ public class ExcelRender<T> implements Serializable {
             cell = row.createCell(col);
             // 对某个单元格加锁
             setDataLockValidation(sheet, cell);
-            if (attr.isMark()) {
+            boolean isMarked = attr.isMark()
+                    || (null != markedIndexMap && markedIndexMap.contains(titleIndex + "_" + col));
+            if (isMarked) {
                 cell.setCellStyle(this.titleMarkCellStyle);
             } else {
                 cell.setCellStyle(this.titleCellStyle);
@@ -707,6 +934,7 @@ public class ExcelRender<T> implements Serializable {
             comment.setString(new HSSFRichTextString(commentContent));
         }
         comment.setAuthor(commentTitle);
+        // comment.setVisible(true);
         cell.setCellComment(comment);
         return sheet;
     }
@@ -742,33 +970,6 @@ public class ExcelRender<T> implements Serializable {
         return result.toUpperCase();
     }
 
-    /**
-     * 添加 下拉框 数据
-     *
-     * @param sheet
-     * @param pullDataMap
-     */
-    public static void addPullDownSelect(Sheet sheet, Sheet selectSheet, int startRow, int endRow, Map<Integer,
-            Set<String>> pullDataMap) {
-        if (CollectionUtils.isEmpty(pullDataMap)) {
-            return;
-        }
-        int index = 0;
-        for (Map.Entry<Integer, Set<String>> entry : pullDataMap.entrySet()) {
-            if (CollectionUtils.isEmpty(entry.getValue())) {
-                continue;
-            }
-            String[] data = new String[entry.getValue().size()];
-            entry.getValue().toArray(data);
-
-            if (data.length < 5) {
-                setPullDown(sheet, data, startRow, endRow, entry.getKey(), entry.getKey());
-            } else {
-                setPullDownMax(index, sheet, selectSheet, data, startRow, endRow, entry.getKey(), entry.getKey());
-                index++;
-            }
-        }
-    }
     /**
      * 添加 字数限制 数据
      *
@@ -1035,6 +1236,7 @@ public class ExcelRender<T> implements Serializable {
         CellStyle lockStyle = workbook.createCellStyle();
         Font font = workbook.createFont();
         font.setFontName("微软雅黑");
+        font.setFontHeightInPoints((short) 10);
         lockStyle.setFont(font);
         short color = 0x16;
         lockStyle.setFillForegroundColor(color);
@@ -1060,23 +1262,258 @@ public class ExcelRender<T> implements Serializable {
      * 获得编辑单元格样式
      *
      * @param workbook
-     * @param isHc
      *
      * @return
      */
-    public static CellStyle getEditStyle(Workbook workbook, Object... isHc) {
+    public static CellStyle getEditStyle(Workbook workbook) {
         //  数字 靠右 可编辑
         CellStyle editStyle = workbook.createCellStyle();
         Font font = workbook.createFont();
+        font.setFontHeightInPoints((short) 10);
         font.setFontName("微软雅黑");
         editStyle.setFont(font);
+
+        // 设置边框
+        Short black = 0x8;
+        editStyle.setBorderBottom(BorderStyle.THIN);
+        editStyle.setBottomBorderColor(black);
+        editStyle.setBorderLeft(BorderStyle.THIN);
+        editStyle.setLeftBorderColor(black);
+        editStyle.setBorderTop(BorderStyle.THIN);
+        editStyle.setTopBorderColor(black);
+        editStyle.setBorderRight(BorderStyle.THIN);
+        editStyle.setRightBorderColor(black);
         editStyle.setLocked(false);
-        editStyle.setDataFormat(workbook.createDataFormat().getFormat("#,##0.00"));
-        if (isHc.length > 0) {
-            editStyle.setDataFormat(workbook.createDataFormat().getFormat("#,##0"));
-        }
         editStyle.setAlignment(HorizontalAlignment.RIGHT);
         editStyle.setVerticalAlignment(VerticalAlignment.CENTER);
         return editStyle;
+    }
+
+    /**
+     * 获取数字数据格式
+     *
+     * @param workbook
+     * @param thousands
+     * @param pointIndex
+     * @param autoFillZero
+     * @param percent
+     * @param negativeStyle
+     *
+     * @return
+     */
+    public static short getDataFormatIndex(Workbook workbook, boolean thousands,
+                                           Integer pointIndex, boolean autoFillZero, boolean percent,
+                                           Integer negativeStyle) {
+        StringBuilder positiveNum = new StringBuilder();
+        StringBuilder negativeNum = new StringBuilder();
+        // 如果设置自定义格式则加载自定义格式
+        if (thousands) {
+            positiveNum.append("#,##");
+            negativeNum.append("-#,##");
+        } else {
+            negativeNum.append("-");
+        }
+        // 小数点
+        if (null != pointIndex) {
+            positiveNum.append("0");
+            negativeNum.append("0");
+            String autoFillStr = autoFillZero ? "0" : "#";
+            for (int i = 0; i < pointIndex; i++) {
+                if (i == 0) {
+                    positiveNum.append(".");
+                    negativeNum.append(".");
+                }
+                positiveNum.append(autoFillStr);
+                negativeNum.append(autoFillStr);
+            }
+        } else {
+            positiveNum.append("0.################");
+            negativeNum.append("0.################");
+        }
+
+        // 百分比
+        if (percent) {
+            positiveNum.append("%");
+            negativeNum.append("%");
+        }
+
+        // 负数格式
+        if (null != negativeStyle) {
+            switch (negativeStyle) {
+                case 1:
+                    // 负数（红色）:-123
+                    negativeNum.insert(0, "[Red]");
+                    break;
+                case 2:
+                    // 括号:(123)
+                    negativeNum = new StringBuilder("(" + negativeNum + ")");
+                    break;
+                case 3:
+                    // 负数（红色）:(123)
+                    negativeNum = new StringBuilder("[Red](" + negativeNum + ")");
+                    break;
+                default:
+            }
+        }
+        DataFormat dataFormatNew = workbook.createDataFormat();
+        short formatIndex = dataFormatNew.getFormat(positiveNum + "_);" + negativeNum);
+        return formatIndex;
+    }
+
+    /**
+     * 创建文档信息
+     *
+     * @param workbook0
+     * @param manager
+     * @param company
+     * @param subject
+     * @param title
+     * @param author
+     * @param comments
+     */
+    public static void createInformation(Workbook workbook0, String manager, String company, String subject,
+                                         String title, String author, String comments) {
+        if (workbook0 instanceof XSSFWorkbook) {
+            HSSFWorkbook workbook = (HSSFWorkbook) workbook0;
+            // 创建文档信息
+            workbook.createInformationProperties();
+            // 摘要信息
+            DocumentSummaryInformation dsi = workbook.getDocumentSummaryInformation();
+            // 类别
+            dsi.setCategory("Excel文件(xls)");
+            // 管理者
+            dsi.setManager(manager);
+            // 公司
+            dsi.setCompany(company);
+            // 摘要信息
+            SummaryInformation si = workbook.getSummaryInformation();
+            // 主题
+            si.setSubject(subject);
+            // 标题
+            si.setTitle(title);
+            // 作者
+            si.setAuthor(author);
+            // 备注
+            si.setComments(comments);
+        } else {
+            XSSFWorkbook workbook = (XSSFWorkbook) workbook0;
+            // 暂无
+        }
+    }
+
+    /**
+     * 设置页眉信息
+     *
+     * @param sheet
+     * @param left
+     * @param center
+     * @param right
+     */
+    public static void header2Sheet(Sheet sheet, String left, String center, String right) {
+        // 得到页眉
+        Header header = sheet.getHeader();
+        header.setLeft(left);
+        header.setCenter(center);
+        header.setRight(right);
+    }
+
+    /**
+     * 设置页脚信息
+     *
+     * @param sheet
+     * @param left
+     * @param center
+     * @param right
+     */
+    public static void foot2Sheet(Sheet sheet, String left, String center, String right) {
+        // 得到页脚
+        Footer footer = sheet.getFooter();
+        footer.setLeft(left);
+        footer.setCenter(center);
+        footer.setRight(right);
+    }
+
+    /**
+     * 添加 url 链接到单元格
+     *
+     * @param cell
+     * @param url
+     */
+    public static void hyperlink2Cell(Cell cell, String url) {
+        CreationHelper createHelper = cell.getSheet().getWorkbook().getCreationHelper();
+        // 关联到网站
+        Hyperlink link = createHelper.createHyperlink(HyperlinkType.URL);
+        link.setAddress(url);
+        cell.setHyperlink(link);
+    }
+
+    /**
+     * 添加 邮件发送快捷键 到单元格
+     *
+     * @param cell
+     * @param email
+     * @param suject
+     */
+    public static void hyperlink2Cell(Cell cell, String email, String suject) {
+        CreationHelper createHelper = cell.getSheet().getWorkbook().getCreationHelper();
+        // 关联到网站
+        Hyperlink link = createHelper.createHyperlink(HyperlinkType.EMAIL);
+        link.setAddress("mailto:" + email + "?subject=" + suject);
+        cell.setHyperlink(link);
+    }
+
+    /**
+     * 添加 当前文件内 跳转 到 指定单元格 的链接到单元格
+     *
+     * @param cell
+     * @param sheetName
+     * @param col
+     * @param row
+     */
+    public static void hyperlink2Cell(Cell cell, String sheetName, String col, String row) {
+        CreationHelper createHelper = cell.getSheet().getWorkbook().getCreationHelper();
+        // 关联到网站
+        Hyperlink link = createHelper.createHyperlink(HyperlinkType.EMAIL);
+        link.setAddress("'" + sheetName + "'!" + col + row);
+        cell.setHyperlink(link);
+    }
+
+    /**
+     * 打印设置
+     *
+     * @param sheet
+     *
+     * @return
+     */
+    public static PrintSetup printSetup(Sheet sheet) {
+        // 得到打印对象
+        PrintSetup print = sheet.getPrintSetup();
+        // true，则表示页面方向为横向；否则为纵向
+        print.setLandscape(false);
+        // 缩放比例80%(设置为0-100之间的值)
+        print.setScale((short) 80);
+        // 设置页宽
+        print.setFitWidth((short) 2);
+        // 设置页高
+        print.setFitHeight((short) 4);
+        // 纸张设置
+        print.setPaperSize(PrintSetup.A4_PAPERSIZE);
+        // 设置打印起始页码不使用"自动"
+        print.setUsePage(true);
+        // 设置打印起始页码
+        print.setPageStart((short) 6);
+        // 设置打印网格线
+        sheet.setPrintGridlines(true);
+        // 值为true时，表示单色打印
+        print.setNoColor(true);
+        // 值为true时，表示用草稿品质打印
+        print.setDraft(true);
+        // true表示“先行后列”；false表示“先列后行”
+        print.setLeftToRight(true);
+        // 设置打印批注
+        print.setNotes(true);
+        // Sheet页自适应页面大小
+        sheet.setAutobreaks(false);
+        return print;
     }
 }

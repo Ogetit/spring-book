@@ -13,21 +13,18 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({java.lang.annotation.ElementType.FIELD})
 public @interface Excel {
-
     /**
      * Excel中的列名
      *
      * @return
      */
     String name();
-
     /**
      * 列名对应的A,B,C,D...,不指定按照默认顺序排序
      *
      * @return
      */
     String column() default "";
-
     /**
      * 提示信息
      *
@@ -41,21 +38,30 @@ public @interface Excel {
      * @return
      */
     String[] readonlyCols() default {};
-
     /**
      * 是否导出数据
      *
      * @return
      */
     boolean isExport() default true;
-
     /**
      * 是否为重要字段（整列标红,着重显示）
      *
      * @return
      */
     boolean isMark() default false;
-
+    /**
+     * 是否为数字
+     *
+     * @return
+     */
+    boolean isNumber() default false;
+    /**
+     * 是否为百分号数字
+     *
+     * @return
+     */
+    boolean isPercentNumber() default false;
     /**
      * 是否合计当前列
      *
@@ -74,10 +80,15 @@ public @interface Excel {
      * @return
      */
     int byteLength() default -1;
-
     /**
-     * 数据格式
+     * 是否设置日期数据格式化
      * @return
      */
-    String dataFormat() default "";
+    String dateFormat() default "";
+    /**
+     * 是否 忽略 从Excel数据的读取
+     * @return
+     */
+    boolean ignoreDataFromExcel() default false;
+
 }

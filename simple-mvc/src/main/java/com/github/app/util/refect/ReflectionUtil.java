@@ -33,6 +33,13 @@ public class ReflectionUtil {
     /**
      * 调用Getter方法.
      */
+    public static Object invokeGetterMethod(Object obj, Field field) {
+        String getterMethodName = "get" + StringUtils.capitalize(field.getName());
+        return invokeMethod(obj, getterMethodName, new Class[] {}, new Object[] {});
+    }
+    /**
+     * 调用Getter方法.
+     */
     public static Object invokeGetterMethod(Object obj, String propertyName) {
         String getterMethodName = "get" + StringUtils.capitalize(propertyName);
         return invokeMethod(obj, getterMethodName, new Class[] {}, new Object[] {});
