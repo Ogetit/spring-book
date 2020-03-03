@@ -1,4 +1,4 @@
-package com.github.app.util.poi.excel;
+package com.github.app.util.poi.excel.bean;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -31,6 +31,7 @@ public class ExcelErrorDomain {
         this.column = column;
         this.errorTip = errorTip;
     }
+
     public ExcelErrorDomain(String sheetName, int row, String column, String errorTip) {
         this.sheetName = sheetName;
         this.row = "" + row;

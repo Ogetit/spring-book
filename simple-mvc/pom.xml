@@ -42,6 +42,7 @@
         <commons-fileupload.version>1.4</commons-fileupload.version>
         <commons-lang.version>2.6</commons-lang.version>
         <commons-lang3.version>3.9</commons-lang3.version>
+        <jsoup.version>1.8.3</jsoup.version>
         <!--<aspectj.version>1.9.2</aspectj.version>-->
         <!--<cglib.version>3.2.12</cglib.version>-->
         <jackson.version>2.9.5</jackson.version>
@@ -262,6 +263,13 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
             <version>${commons-lang3.version}</version>
+        </dependency>
+
+        <!--jsoup-->
+        <dependency>
+            <groupId>org.jsoup</groupId>
+            <artifactId>jsoup</artifactId>
+            <version>${jsoup.version}</version>
         </dependency>
 
         <!--poi-->
