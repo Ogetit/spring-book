@@ -42,7 +42,7 @@ public class Application {
     @Bean
     public CommandLineRunner commandLineRunner(ApplicationContext ctx) {
         return args -> {
-            logger.info("[sqlite-console] Spring boot 服务");
+            logger.info("[simple-springboot] Spring boot 服务");
             String[] beanNames = ctx.getBeanDefinitionNames();
             Arrays.sort(beanNames);
             for (String beanName : beanNames) {
