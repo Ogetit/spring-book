@@ -51,9 +51,9 @@ public class WebGenericsParamArgumentResolver implements HandlerMethodArgumentRe
         // 判断 content-type 是否是 application/json 的数据类型
         String contentType = nativeWebRequest.getHeader("content-type");
         if (!StringUtils.isEmpty(contentType) && contentType.contains(CONTENT_TYPE)) {
-            jsonStr = WebRequestUtil.getJSONParam(nativeWebRequest);
+            jsonStr = WebRequestUtil.getJsonParam(nativeWebRequest);
         } else {
-            jsonStr = WebRequestUtil.parseParamToJSONStr(nativeWebRequest);
+            jsonStr = WebRequestUtil.parseParamToJsonStr(nativeWebRequest);
         }
         try {
             Object result;

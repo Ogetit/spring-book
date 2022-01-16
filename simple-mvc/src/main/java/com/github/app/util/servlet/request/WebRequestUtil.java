@@ -46,11 +46,11 @@ public class WebRequestUtil {
      * @Param [request]
      * @Return java.lang.String
      */
-    public static String getJSONParam(NativeWebRequest request) {
+    public static String getJsonParam(NativeWebRequest request) {
         try {
             HttpServletRequest httpServletRequest = request.getNativeRequest(HttpServletRequest.class);
             Assert.notNull(httpServletRequest, "当前请求获取失败！");
-            return getJSONParam(httpServletRequest);
+            return getJsonParam(httpServletRequest);
         } catch (Exception e) {
             logger.error("获取JSON字符串中的数据错误:" + e.getMessage(), e);
         }
@@ -62,7 +62,7 @@ public class WebRequestUtil {
      * @Param [request]
      * @Return java.lang.String
      */
-    public static String getJSONParam(HttpServletRequest request) {
+    public static String getJsonParam(HttpServletRequest request) {
         StringBuilder stringBuilder = new StringBuilder();
         try {
             // 1.获取输入流
@@ -84,7 +84,7 @@ public class WebRequestUtil {
      * @Param [request]
      * @Return java.lang.String
      */
-    public static String parseParamToJSONStr(HttpServletRequest request) {
+    public static String parseParamToJsonStr(HttpServletRequest request) {
         Map<String, String[]> conditionMap = request.getParameterMap();
         Iterator<String> names = CollectionUtils.toIterator(request.getParameterNames());
         return mapToJsonStr(conditionMap, names);
@@ -95,7 +95,7 @@ public class WebRequestUtil {
      * @Param [request]
      * @Return java.lang.String
      */
-    public static String parseParamToJSONStr(NativeWebRequest request) {
+    public static String parseParamToJsonStr(NativeWebRequest request) {
         Map<String, String[]> conditionMap = request.getParameterMap();
         Iterator<String> names = request.getParameterNames();
         return mapToJsonStr(conditionMap, names);
@@ -114,7 +114,7 @@ public class WebRequestUtil {
             String name = names.next();
             String[] value = conditionMap.get(name);
             if (value != null) {
-                parseHavePointParamToJSON(jsonObject, name, value);
+                parseHavePointParamToJson(jsonObject, name, value);
             }
         }
         return jsonObject.toJSONString();
@@ -125,7 +125,7 @@ public class WebRequestUtil {
      * @Param [jsonObject, name, value]
      * @Return void
      */
-    public static void parseHavePointParamToJSON(JSONObject jsonObject, String name, String[] value) {
+    public static void parseHavePointParamToJson(JSONObject jsonObject, String name, String[] value) {
         // 处理中括号
         if (name.contains(LEFT_PARENTHESIS)) {
             name = name.replace(PARENTHESIS, "")
@@ -159,7 +159,7 @@ public class WebRequestUtil {
             }
             jsonObject.put(tempName, subJSONObject);
             // 递归处理
-            parseHavePointParamToJSON(subJSONObject, subName, value);
+            parseHavePointParamToJson(subJSONObject, subName, value);
         }
     }
 
@@ -196,9 +196,9 @@ public class WebRequestUtil {
         if (withReqBody) {
             String jsonStr;
             if (!StringUtils.isEmpty(contentType) && contentType.contains(CONTENT_TYPE_JSON)) {
-                jsonStr = WebRequestUtil.getJSONParam(request);
+                jsonStr = WebRequestUtil.getJsonParam(request);
             } else {
-                jsonStr = WebRequestUtil.parseParamToJSONStr(request);
+                jsonStr = WebRequestUtil.parseParamToJsonStr(request);
             }
             logInfo.append("==>params:").append(jsonStr).append("]");
         } else {
